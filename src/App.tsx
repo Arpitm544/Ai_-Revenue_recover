@@ -1,0 +1,161 @@
+import { useState, useMemo } from 'react';
+import { Navbar } from './components/Navbar';
+import { ExecutiveDashboard } from './components/ExecutiveDashboard';
+import { CasesTable } from './components/CasesTable';
+import { BatchSimulator } from './components/BatchSimulator';
+import { VoiceAgentModal } from './components/VoiceAgentModal';
+import { WhatsAppPreviewModal } from './components/WhatsAppPreviewModal';
+import { AuditTrailModal } from './components/AuditTrailModal';
+import { ComplianceConfigModal } from './components/ComplianceConfigModal';
+import { NewCaseModal } from './components/NewCaseModal';
+
+import { INITIAL_MOCK_CASES, generateMockBatchCases } from './services/mockData';
+import { ComplianceEngine } from './services/complianceEngine';
+import { RevenueRecoveryAgent } from './services/recoveryAgent';
+import type { RecoveryCase } from './types/recovery';
+
+export function App() {
+  const complianceEngine = useMemo(() => new ComplianceEngine(), []);
+  const recoveryAgent = useMemo(() => new RevenueRecoveryAgent(complianceEngine), [complianceEngine]);
+
+  const [cases, setCases] = useState<RecoveryCase[]>(() => [
+    ...INITIAL_MOCK_CASES,
+    ...generateMockBatchCases(45)
+  ]);
+
+  // Modal States
+  const [isBatchOpen, setIsBatchOpen] = useState(false);
+  const [isComplianceOpen, setIsComplianceOpen] = useState(false);
+  const [isNewCaseOpen, setIsNewCaseOpen] = useState(false);
+
+  const [selectedVoiceCase, setSelectedVoiceCase] = useState<RecoveryCase | null>(null);
+  const [selectedWhatsAppCase, setSelectedWhatsAppCase] = useState<RecoveryCase | null>(null);
+  const [selectedAuditCase, setSelectedAuditCase] = useState<RecoveryCase | null>(null);
+
+  // Single Case Update Handler
+  const handleUpdateCase = (updated: RecoveryCase) => {
+    setCases(prev => prev.map(c => c.id === updated.id ? updated : c));
+  };
+
+  // Batch Update Handler
+  const handleUpdateBatchCases = (updatedList: RecoveryCase[]) => {
+    setCases(updatedList);
+  };
+
+  // Add New Case Handler
+  const handleAddCase = (newCase: RecoveryCase) => {
+    const diagnosed = recoveryAgent.diagnoseCase(newCase);
+    setCases(prev => [diagnosed, ...prev]);
+  };
+
+  // Single Case Intervene Execution
+  const handleInterveneSingle = (rcase: RecoveryCase) => {
+    const diagnosed = recoveryAgent.diagnoseCase(rcase);
+    const { updatedCase } = recoveryAgent.processIntervention(diagnosed);
+    handleUpdateCase(updatedCase);
+  };
+
+  return (
+    <div className="min-h-screen bg-[#030712] text-slate-100 font-sans selection:bg-blue-500 selection:text-white flex flex-col">
+      {/* Top Navbar */}
+      <Navbar
+        onOpenBatchSimulator={() => setIsBatchOpen(true)}
+        onOpenComplianceConfig={() => setIsComplianceOpen(true)}
+        onOpenNewCase={() => setIsNewCaseOpen(true)}
+        complianceEngine={complianceEngine}
+      />
+
+      {/* Main App Container */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* Banner Announcement */}
+        <div className="rounded-2xl bg-gradient-to-r from-blue-900/40 via-indigo-900/30 to-purple-900/40 border border-blue-500/20 p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+          <div className="space-y-1 text-center sm:text-left">
+            <div className="flex items-center justify-center sm:justify-start space-x-2">
+              <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded-md bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                Razorpay Hackathon • Track 03
+              </span>
+              <h2 className="text-sm font-bold text-white">AI Revenue Recovery Engine</h2>
+            </div>
+            <p className="text-xs text-slate-300">
+              Autonomous multi-vector detection, Hinglish Voice & 1-Tap UPI interventions, RBI/DPDP compliant stopping rules, and live money recovery ledger.
+            </p>
+          </div>
+
+          <button
+            onClick={() => setIsBatchOpen(true)}
+            className="shrink-0 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 transition-all cursor-pointer"
+          >
+            Launch Autonomous Batch Simulator
+          </button>
+        </div>
+
+        {/* Executive Dashboard KPIs & Visualizations */}
+        <ExecutiveDashboard cases={cases} />
+
+        {/* Recovery Cases Interactive Table */}
+        <CasesTable
+          cases={cases}
+          onSelectVoiceCase={(c) => setSelectedVoiceCase(c)}
+          onSelectWhatsAppCase={(c) => setSelectedWhatsAppCase(c)}
+          onSelectAuditCase={(c) => setSelectedAuditCase(c)}
+          onInterveneSingle={handleInterveneSingle}
+          onOpenNewCaseModal={() => setIsNewCaseOpen(true)}
+        />
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-slate-800 bg-slate-950 py-6 text-center text-xs text-slate-500">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <span>Razorpay RevGuard AI • Track 03: AI Revenue Recovery</span>
+          <span>Compliant Escalation & Audit Trail Ledger</span>
+        </div>
+      </footer>
+
+      {/* Modals */}
+      <BatchSimulator
+        isOpen={isBatchOpen}
+        onClose={() => setIsBatchOpen(false)}
+        cases={cases}
+        onUpdateCases={handleUpdateBatchCases}
+        complianceEngine={complianceEngine}
+        recoveryAgent={recoveryAgent}
+      />
+
+      <VoiceAgentModal
+        isOpen={!!selectedVoiceCase}
+        onClose={() => setSelectedVoiceCase(null)}
+        rcase={selectedVoiceCase}
+        recoveryAgent={recoveryAgent}
+        onUpdateCase={handleUpdateCase}
+      />
+
+      <WhatsAppPreviewModal
+        isOpen={!!selectedWhatsAppCase}
+        onClose={() => setSelectedWhatsAppCase(null)}
+        rcase={selectedWhatsAppCase}
+        onUpdateCase={handleUpdateCase}
+      />
+
+      <AuditTrailModal
+        isOpen={!!selectedAuditCase}
+        onClose={() => setSelectedAuditCase(null)}
+        rcase={selectedAuditCase}
+      />
+
+      <ComplianceConfigModal
+        isOpen={isComplianceOpen}
+        onClose={() => setIsComplianceOpen(false)}
+        complianceEngine={complianceEngine}
+        onSettingsUpdated={() => setCases([...cases])}
+      />
+
+      <NewCaseModal
+        isOpen={isNewCaseOpen}
+        onClose={() => setIsNewCaseOpen(false)}
+        onAddCase={handleAddCase}
+      />
+    </div>
+  );
+}
+
+export default App;
