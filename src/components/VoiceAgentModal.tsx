@@ -28,6 +28,7 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({
   const [callState, setCallState] = useState<'IDLE' | 'CALLING' | 'CONNECTED' | 'ENDED'>('IDLE');
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [speechRate, setSpeechRate] = useState<number>(1.0);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputSpeech, setInputSpeech] = useState('');
   const [currentCase, setCurrentCase] = useState<RecoveryCase | null>(rcase);
@@ -102,7 +103,7 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.95;
+      utterance.rate = speechRate;
       utterance.pitch = 1.0;
       
       // Select natural Indian or Hindi voice if available
@@ -225,6 +226,24 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({
           </div>
 
           <div className="flex items-center space-x-2">
+            {/* Speed Toggle */}
+            <div className="flex items-center space-x-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-[10px]">
+              {[0.8, 1.0, 1.2].map((rate) => (
+                <button
+                  key={rate}
+                  onClick={() => setSpeechRate(rate)}
+                  className={`px-2 py-0.5 rounded-lg font-medium transition-all cursor-pointer ${
+                    speechRate === rate
+                      ? 'bg-indigo-600 text-white shadow-sm'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                  title={`Set Voice Speed to ${rate}x`}
+                >
+                  {rate}x
+                </button>
+              ))}
+            </div>
+
             {callState === 'CONNECTED' ? (
               <button
                 onClick={handleEndCall}
