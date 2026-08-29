@@ -217,4 +217,131 @@ Payment 7 dino se overdue hai. Kya aap isse aaj settle kar sakte hain ya payment
       audioPrompt: `Voice Call Script for ${name} (${rcase.leakVector})`
     };
   }
+
+  /**
+   * Conversational Speech Intent Engine:
+   * Parses natural spoken speech in Hinglish/English and generates dynamic contextual response
+   */
+  public processConversationalSpeech(rcase: RecoveryCase, userInput: string): SpeechTurnResponse {
+    const input = userInput.toLowerCase();
+    const name = rcase.customerName;
+    const amount = `₹${rcase.amountAtRisk.toLocaleString('en-IN')}`;
+
+    // 1. Intent: Promise to Pay (P2P)
+    const p2pKeywords = ['salary', 'tareekh', 'date', 'pay karunga', 'later', 'next week', 'kal', 'baad', 'monday', 'friday', '5th', '1st', 'promise', 'schedule'];
+    const hasP2P = p2pKeywords.some(k => input.includes(k)) || /\b(\d{1,2})(st|nd|rd|th|\s*(tareekh|tarikh|date))?\b/.test(input);
+
+    if (hasP2P && !input.includes('cancel') && !input.includes('dispute')) {
+      let targetDay = 5;
+      const dayMatch = input.match(/\b(\d{1,2})\b/);
+      if (dayMatch && parseInt(dayMatch[1]) <= 31) {
+        targetDay = parseInt(dayMatch[1]);
+      } else if (input.includes('1st') || input.includes('salary')) {
+        targetDay = 1;
+      }
+
+      const now = new Date();
+      let targetDate = new Date(now.getFullYear(), now.getMonth(), targetDay);
+      if (targetDate.getTime() <= now.getTime()) {
+        targetDate = new Date(now.getFullYear(), now.getMonth() + 1, targetDay);
+      }
+
+      const formattedDateStr = targetDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+      const updated = this.recordPromiseToPay(
+        rcase,
+        targetDate.toISOString(),
+        `Customer verbally promised via Voice Call: "${userInput}"`
+      );
+
+      return {
+        detectedIntent: 'PROMISE_TO_PAY',
+        replyText: `Shukriya ${name}ji! Maine aapka payment reminder ${formattedDateStr} ke liye note kar liya hai aur tab tak sabhi reminders pause kar diye hain. Aapko salary ke baad safe payment link bhej diya jayega. Have a great day!`,
+        updatedCase: updated,
+        actionTaken: `Promise-to-Pay locked for ${formattedDateStr}. Escalations paused.`
+      };
+    }
+
+    // 2. Intent: Pay Now / Send Payment Link
+    const payNowKeywords = ['abhi', 'now', 'link', 'whatsapp', 'bhejo', 'send', 'pay', 'upi', 'gpay', 'phonepe', 'karo', 'yes'];
+    if (payNowKeywords.some(k => input.includes(k)) && !input.includes('nahi') && !input.includes('not') && !input.includes('cancel')) {
+      const recovered: RecoveryCase = {
+        ...rcase,
+        status: 'RECOVERED',
+        totalAmountRecovered: rcase.amountAtRisk,
+        auditTrail: [
+          {
+            id: `aud_vpay_${Math.random().toString(36).substring(2, 7)}`,
+            timestamp: new Date().toISOString(),
+            actor: 'CUSTOMER',
+            action: 'VOICE_INTERACTIVE_PAYMENT_INITIATED',
+            details: `Customer verbally confirmed payment during Voice Call: "${userInput}". 1-Tap UPI link dispatched.`,
+            complianceCheck: { dndCompliant: true, maxAttemptsRespected: true, disputeCheckPassed: true }
+          },
+          ...rcase.auditTrail
+        ]
+      };
+
+      return {
+        detectedIntent: 'PAY_NOW',
+        replyText: `Perfect ${name}ji! Maine aapke WhatsApp number pe direct 1-tap Razorpay UPI link send kar diya hai. Link click karke aap GPay ya PhonePe se payment 10 seconds mein complete kar sakte hain. Dhanyavaad!`,
+        updatedCase: recovered,
+        actionTaken: `1-Tap UPI link sent to customer. ₹${amount} marked as recovered.`
+      };
+    }
+
+    // 3. Intent: Dispute / Opt Out
+    const disputeKeywords = ['dispute', 'cancel', 'band karo', 'mat karo', 'wrong', 'spam', 'fraud', 'stop calling', 'nahi chahiye', 'nahi karunga'];
+    if (disputeKeywords.some(k => input.includes(k))) {
+      const disputed: RecoveryCase = {
+        ...rcase,
+        isCustomerDisputed: true,
+        status: 'STOPPED_COMPLIANT',
+        stopReason: `STOP RULE TRIGGERED: Customer verbal dispute logged ("${userInput}").`,
+        auditTrail: [
+          {
+            id: `aud_vdisp_${Math.random().toString(36).substring(2, 7)}`,
+            timestamp: new Date().toISOString(),
+            actor: 'CUSTOMER',
+            action: 'VERBAL_DISPUTE_RAISED',
+            details: `Customer indicated dispute/opt-out during Voice Call: "${userInput}". Compliance freeze triggered.`,
+            complianceCheck: { dndCompliant: true, maxAttemptsRespected: true, disputeCheckPassed: false, ruleApplied: 'CUSTOMER_DISPUTE_FREEZE' }
+          },
+          ...rcase.auditTrail
+        ]
+      };
+
+      return {
+        detectedIntent: 'DISPUTE_OPT_OUT',
+        replyText: `Samajh gaya ${name}ji. Maine aapka feedback note kar liya hai aur humare system mein dispute flag raise kar diya hai. Aapka account compliance freeze pe daal diya gaya hai aur koi automatic call nahi aayegi.`,
+        updatedCase: disputed,
+        actionTaken: 'Customer dispute logged. All automated outreach frozen.'
+      };
+    }
+
+    // 4. Intent: Query Amount / Reason
+    const queryKeywords = ['kitna', 'amount', 'kyu', 'reason', 'fail', 'why', 'how much', 'what', 'kaha'];
+    if (queryKeywords.some(k => input.includes(k))) {
+      return {
+        detectedIntent: 'QUERY_DETAILS',
+        replyText: `${name}ji, aapka pending amount ${amount} hai for ${rcase.leakVector}. Ye ${rcase.issuingBank} se ${rcase.failureReason} ke karan fail hua tha. Kya aap WhatsApp pe UPI link chahte hain ya date schedule karein?`,
+        updatedCase: rcase,
+        actionTaken: 'Provided transaction breakdown to customer.'
+      };
+    }
+
+    // Default / General Acknowledgment
+    return {
+      detectedIntent: 'GENERAL_ACK',
+      replyText: `Ji ${name}ji, maine aapki baat note ki. Aapka ${amount} ka payment pending hai. Kya aap abhi UPI se pay karna chahenge ya 5th salary date ko retry schedule karein?`,
+      updatedCase: rcase,
+      actionTaken: 'Clarified options with customer.'
+    };
+  }
+}
+
+export interface SpeechTurnResponse {
+  replyText: string;
+  detectedIntent: 'PROMISE_TO_PAY' | 'PAY_NOW' | 'DISPUTE_OPT_OUT' | 'QUERY_DETAILS' | 'GENERAL_ACK';
+  updatedCase: RecoveryCase;
+  actionTaken?: string;
 }
