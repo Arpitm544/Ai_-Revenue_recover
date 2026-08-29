@@ -227,7 +227,44 @@ Payment 7 dino se overdue hai. Kya aap isse aaj settle kar sakte hain ya payment
     const name = rcase.customerName;
     const amount = `₹${rcase.amountAtRisk.toLocaleString('en-IN')}`;
 
-    // 1. Intent: Promise to Pay (P2P)
+    // 1. Intent: Gratitude / Closing / Sign-off (Context-Aware)
+    const gratitudeKeywords = ['thank', 'dhanyavaad', 'shukriya', 'welcome', 'bye', 'alvida', 'ok', 'theek', 'thik', 'chalega', 'sure', 'great', 'done', 'accha'];
+    if (gratitudeKeywords.some(k => input.includes(k))) {
+      if (rcase.status === 'PROMISED_TO_PAY') {
+        const promisedDateStr = rcase.promiseToPayDate 
+          ? new Date(rcase.promiseToPayDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+          : 'scheduled date';
+        return {
+          detectedIntent: 'CALL_CLOSING',
+          replyText: `Most welcome ${name}ji! Aapka reminder ${promisedDateStr} ke liye safely locked hai. Call disconnect kar raha hoon. Have a wonderful day ahead!`,
+          updatedCase: rcase,
+          actionTaken: 'Call concluded gracefully under Promise-to-Pay status.'
+        };
+      } else if (rcase.status === 'RECOVERED') {
+        return {
+          detectedIntent: 'CALL_CLOSING',
+          replyText: `Aapka swagat hai ${name}ji! Payment securely settle ho chuki hai. Razorpay use karne ke liye dhanyavaad, alvida!`,
+          updatedCase: rcase,
+          actionTaken: 'Call concluded gracefully under Recovered status.'
+        };
+      } else if (rcase.status === 'STOPPED_COMPLIANT') {
+        return {
+          detectedIntent: 'CALL_CLOSING',
+          replyText: `Dhanyavaad ${name}ji. Humne sabhi updates note kar liye hain. Aapka din shubh rahe!`,
+          updatedCase: rcase,
+          actionTaken: 'Call concluded gracefully under Compliance Freeze.'
+        };
+      } else {
+        return {
+          detectedIntent: 'CALL_CLOSING',
+          replyText: `You're welcome ${name}ji! Agar aapko payment complete karne mein koi bhi help chahiye toh humari team available hai. Have a great day!`,
+          updatedCase: rcase,
+          actionTaken: 'Acknowledged customer feedback.'
+        };
+      }
+    }
+
+    // 2. Intent: Promise to Pay (P2P)
     const p2pKeywords = ['salary', 'tareekh', 'date', 'pay karunga', 'later', 'next week', 'kal', 'baad', 'monday', 'friday', '5th', '1st', 'promise', 'schedule'];
     const hasP2P = p2pKeywords.some(k => input.includes(k)) || /\b(\d{1,2})(st|nd|rd|th|\s*(tareekh|tarikh|date))?\b/.test(input);
 
@@ -261,7 +298,7 @@ Payment 7 dino se overdue hai. Kya aap isse aaj settle kar sakte hain ya payment
       };
     }
 
-    // 2. Intent: Pay Now / Send Payment Link
+    // 3. Intent: Pay Now / Send Payment Link
     const payNowKeywords = ['abhi', 'now', 'link', 'whatsapp', 'bhejo', 'send', 'pay', 'upi', 'gpay', 'phonepe', 'karo', 'yes'];
     if (payNowKeywords.some(k => input.includes(k)) && !input.includes('nahi') && !input.includes('not') && !input.includes('cancel')) {
       const recovered: RecoveryCase = {
@@ -289,7 +326,7 @@ Payment 7 dino se overdue hai. Kya aap isse aaj settle kar sakte hain ya payment
       };
     }
 
-    // 3. Intent: Dispute / Opt Out
+    // 4. Intent: Dispute / Opt Out
     const disputeKeywords = ['dispute', 'cancel', 'band karo', 'mat karo', 'wrong', 'spam', 'fraud', 'stop calling', 'nahi chahiye', 'nahi karunga'];
     if (disputeKeywords.some(k => input.includes(k))) {
       const disputed: RecoveryCase = {
@@ -318,7 +355,7 @@ Payment 7 dino se overdue hai. Kya aap isse aaj settle kar sakte hain ya payment
       };
     }
 
-    // 4. Intent: Query Amount / Reason
+    // 5. Intent: Query Amount / Reason
     const queryKeywords = ['kitna', 'amount', 'kyu', 'reason', 'fail', 'why', 'how much', 'what', 'kaha'];
     if (queryKeywords.some(k => input.includes(k))) {
       return {
@@ -341,7 +378,7 @@ Payment 7 dino se overdue hai. Kya aap isse aaj settle kar sakte hain ya payment
 
 export interface SpeechTurnResponse {
   replyText: string;
-  detectedIntent: 'PROMISE_TO_PAY' | 'PAY_NOW' | 'DISPUTE_OPT_OUT' | 'QUERY_DETAILS' | 'GENERAL_ACK';
+  detectedIntent: 'PROMISE_TO_PAY' | 'PAY_NOW' | 'DISPUTE_OPT_OUT' | 'QUERY_DETAILS' | 'GENERAL_ACK' | 'CALL_CLOSING';
   updatedCase: RecoveryCase;
   actionTaken?: string;
 }
