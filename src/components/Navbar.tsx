@@ -1,19 +1,23 @@
 import React from 'react';
-import { ShieldCheck, Play, Settings, PlusCircle, AlertCircle } from 'lucide-react';
+import { ShieldCheck, Play, Settings, PlusCircle, AlertCircle, Activity } from 'lucide-react';
 import { ComplianceEngine } from '../services/complianceEngine';
 
 interface NavbarProps {
   onOpenBatchSimulator: () => void;
   onOpenComplianceConfig: () => void;
   onOpenNewCase: () => void;
+  onOpenBankHealth: () => void;
   complianceEngine: ComplianceEngine;
+  degradedBankCount: number;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   onOpenBatchSimulator,
   onOpenComplianceConfig,
   onOpenNewCase,
-  complianceEngine
+  onOpenBankHealth,
+  complianceEngine,
+  degradedBankCount
 }) => {
   const inDnd = complianceEngine.isDndTime();
   const settings = complianceEngine.getSettings();
@@ -43,6 +47,20 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Status Indicators */}
         <div className="flex items-center space-x-3">
+          {/* Bank Gateway Pulse Indicator */}
+          <button
+            onClick={onOpenBankHealth}
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
+              degradedBankCount > 0
+                ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20'
+                : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'
+            }`}
+            title="Open Bank Gateway Health Matrix"
+          >
+            <Activity className="w-3.5 h-3.5 animate-pulse" />
+            <span>Gateways: {degradedBankCount > 0 ? `${degradedBankCount} Degraded` : '5/5 Healthy'}</span>
+          </button>
+
           {inDnd ? (
             <div className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-medium">
               <AlertCircle className="w-3.5 h-3.5 animate-pulse text-amber-400" />

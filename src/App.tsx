@@ -8,15 +8,18 @@ import { WhatsAppPreviewModal } from './components/WhatsAppPreviewModal';
 import { AuditTrailModal } from './components/AuditTrailModal';
 import { ComplianceConfigModal } from './components/ComplianceConfigModal';
 import { NewCaseModal } from './components/NewCaseModal';
+import { BankHealthModal } from './components/BankHealthModal';
 
 import { INITIAL_MOCK_CASES, generateMockBatchCases } from './services/mockData';
 import { ComplianceEngine } from './services/complianceEngine';
 import { RevenueRecoveryAgent } from './services/recoveryAgent';
+import { BankHealthService } from './services/bankHealthService';
 import type { RecoveryCase } from './types/recovery';
 
 export function App() {
   const complianceEngine = useMemo(() => new ComplianceEngine(), []);
   const recoveryAgent = useMemo(() => new RevenueRecoveryAgent(complianceEngine), [complianceEngine]);
+  const bankHealthService = useMemo(() => new BankHealthService(), []);
 
   const [cases, setCases] = useState<RecoveryCase[]>(() => [
     ...INITIAL_MOCK_CASES,
@@ -27,10 +30,14 @@ export function App() {
   const [isBatchOpen, setIsBatchOpen] = useState(false);
   const [isComplianceOpen, setIsComplianceOpen] = useState(false);
   const [isNewCaseOpen, setIsNewCaseOpen] = useState(false);
+  const [isBankHealthOpen, setIsBankHealthOpen] = useState(false);
 
   const [selectedVoiceCase, setSelectedVoiceCase] = useState<RecoveryCase | null>(null);
   const [selectedWhatsAppCase, setSelectedWhatsAppCase] = useState<RecoveryCase | null>(null);
   const [selectedAuditCase, setSelectedAuditCase] = useState<RecoveryCase | null>(null);
+
+  // Computed Bank Outage Count
+  const degradedBankCount = bankHealthService.getBanks().filter(b => b.status === 'DEGRADED' || b.status === 'OUTAGE').length;
 
   // Single Case Update Handler
   const handleUpdateCase = (updated: RecoveryCase) => {
@@ -62,7 +69,9 @@ export function App() {
         onOpenBatchSimulator={() => setIsBatchOpen(true)}
         onOpenComplianceConfig={() => setIsComplianceOpen(true)}
         onOpenNewCase={() => setIsNewCaseOpen(true)}
+        onOpenBankHealth={() => setIsBankHealthOpen(true)}
         complianceEngine={complianceEngine}
+        degradedBankCount={degradedBankCount}
       />
 
       {/* Main App Container */}
@@ -77,16 +86,24 @@ export function App() {
               <h2 className="text-sm font-bold text-white">AI Revenue Recovery Engine</h2>
             </div>
             <p className="text-xs text-slate-300">
-              Autonomous multi-vector detection, Hinglish Voice & 1-Tap UPI interventions, RBI/DPDP compliant stopping rules, and live money recovery ledger.
+              Autonomous multi-vector detection, Hinglish Voice & 1-Tap UPI interventions, Bank Downtime Hold Sequencer, and live money recovery ledger.
             </p>
           </div>
 
-          <button
-            onClick={() => setIsBatchOpen(true)}
-            className="shrink-0 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 transition-all cursor-pointer"
-          >
-            Launch Autonomous Batch Simulator
-          </button>
+          <div className="flex items-center space-x-2 shrink-0">
+            <button
+              onClick={() => setIsBankHealthOpen(true)}
+              className="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs rounded-xl border border-slate-700 transition-all cursor-pointer"
+            >
+              Bank Health Pulse
+            </button>
+            <button
+              onClick={() => setIsBatchOpen(true)}
+              className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 transition-all cursor-pointer"
+            >
+              Run Batch Simulator
+            </button>
+          </div>
         </div>
 
         {/* Executive Dashboard KPIs & Visualizations */}
@@ -107,7 +124,7 @@ export function App() {
       <footer className="border-t border-slate-800 bg-slate-950 py-6 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>Razorpay RevGuard AI • Track 03: AI Revenue Recovery</span>
-          <span>Compliant Escalation & Audit Trail Ledger</span>
+          <span>Compliant Escalation & Bank Gateway Sequencer</span>
         </div>
       </footer>
 
@@ -154,8 +171,17 @@ export function App() {
         onClose={() => setIsNewCaseOpen(false)}
         onAddCase={handleAddCase}
       />
+
+      <BankHealthModal
+        isOpen={isBankHealthOpen}
+        onClose={() => setIsBankHealthOpen(false)}
+        bankHealthService={bankHealthService}
+        cases={cases}
+        onUpdateCases={handleUpdateBatchCases}
+      />
     </div>
   );
 }
 
 export default App;
+
