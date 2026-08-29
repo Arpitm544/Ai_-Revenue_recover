@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, CheckCircle2, Zap, Shield } from 'lucide-react';
 import type { RecoveryCase } from '../types/recovery';
 
@@ -17,6 +17,13 @@ export const WhatsAppPreviewModal: React.FC<WhatsAppPreviewModalProps> = ({
 }) => {
   const [isProcessingPay, setIsProcessingPay] = useState(false);
   const [isPaid, setIsPaid] = useState(false);
+
+  useEffect(() => {
+    if (rcase) {
+      setIsProcessingPay(false);
+      setIsPaid(rcase.status === 'RECOVERED');
+    }
+  }, [rcase, isOpen]);
 
   if (!isOpen || !rcase) return null;
 
