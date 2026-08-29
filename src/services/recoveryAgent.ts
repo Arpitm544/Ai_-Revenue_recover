@@ -366,19 +366,30 @@ Payment 7 dino se overdue hai. Kya aap isse aaj settle kar sakte hain ya payment
       };
     }
 
-    // Default / General Acknowledgment
+    // 6. Intent: Greetings / Identity ("Hi", "Hello", "Kaun ho")
+    const greetingKeywords = ['hi', 'hello', 'hey', 'namaste', 'kaun', 'who', 'sun', 'bolo'];
+    if (greetingKeywords.some(k => input.split(' ').includes(k) || input === k)) {
+      return {
+        detectedIntent: 'GREETING_ACK',
+        replyText: `Namaste ${name}ji! Main Razorpay Automated Revenue Care se bol raha hoon regarding aapka pending ${amount} ka payment. Kya main aapko 1-tap UPI link bhejoon ya salary ke baad retry schedule karein?`,
+        updatedCase: rcase,
+        actionTaken: 'Greeted customer and stated purpose.'
+      };
+    }
+
+    // 7. Intent: Off-Topic / Unrelated Input (Bounded Workflow Guardrail)
     return {
-      detectedIntent: 'GENERAL_ACK',
-      replyText: `Ji ${name}ji, maine aapki baat note ki. Aapka ${amount} ka payment pending hai. Kya aap abhi UPI se pay karna chahenge ya 5th salary date ko retry schedule karein?`,
+      detectedIntent: 'OFF_TOPIC_FALLBACK',
+      replyText: `Kshama karein ${name}ji, main Razorpay Revenue Care assistant hoon aur sirf aapke pending payment (${amount}) ko resolve karne mein help kar sakta hoon. Aap 'Pay Now', 'Date Reminder' (e.g. 5th), ya 'Dispute' bata sakte hain.`,
       updatedCase: rcase,
-      actionTaken: 'Clarified options with customer.'
+      actionTaken: 'Off-topic input detected. Gracefully redirected back to payment workflow.'
     };
   }
 }
 
 export interface SpeechTurnResponse {
   replyText: string;
-  detectedIntent: 'PROMISE_TO_PAY' | 'PAY_NOW' | 'DISPUTE_OPT_OUT' | 'QUERY_DETAILS' | 'GENERAL_ACK' | 'CALL_CLOSING';
+  detectedIntent: 'PROMISE_TO_PAY' | 'PAY_NOW' | 'DISPUTE_OPT_OUT' | 'QUERY_DETAILS' | 'GENERAL_ACK' | 'CALL_CLOSING' | 'GREETING_ACK' | 'OFF_TOPIC_FALLBACK';
   updatedCase: RecoveryCase;
   actionTaken?: string;
 }
