@@ -1,19 +1,23 @@
 import React from 'react';
 import { 
   ShieldCheck, LayoutDashboard, AlertCircle, Activity, Radio, 
-  Play, Settings, PlusCircle, UserCheck, Shield, Sun, Moon
+  Play, Settings, PlusCircle, Shield, Sun, Moon
 } from 'lucide-react';
 import type { ComplianceEngine } from '../features/recovery/ComplianceEngine';
 import { useTheme } from './ThemeContext';
 
+export type ActiveWorkspaceView = 
+  | 'cases' 
+  | 'analytics' 
+  | 'gateways' 
+  | 'webhooks' 
+  | 'batch' 
+  | 'compliance' 
+  | 'inject';
+
 interface SidebarProps {
-  activeView: 'cases' | 'analytics';
-  onSelectView: (view: 'cases' | 'analytics') => void;
-  onOpenBatchSimulator: () => void;
-  onOpenComplianceConfig: () => void;
-  onOpenNewCase: () => void;
-  onOpenBankHealth: () => void;
-  onOpenWebhookSandbox: () => void;
+  activeView: ActiveWorkspaceView;
+  onSelectView: (view: ActiveWorkspaceView) => void;
   complianceEngine: ComplianceEngine;
   degradedBankCount: number;
   totalCasesCount: number;
@@ -22,11 +26,6 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({
   activeView,
   onSelectView,
-  onOpenBatchSimulator,
-  onOpenComplianceConfig,
-  onOpenNewCase,
-  onOpenBankHealth,
-  onOpenWebhookSandbox,
   complianceEngine,
   degradedBankCount,
   totalCasesCount
@@ -36,6 +35,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const settings = complianceEngine.getSettings();
 
   const isDark = theme === 'dark';
+
+  const getItemClass = (view: ActiveWorkspaceView, isCta = false) => {
+    const isActive = activeView === view;
+    if (isActive) {
+      return isDark 
+        ? 'bg-[#181818] text-white font-semibold' 
+        : 'bg-[#F3F4F6] text-black font-semibold shadow-xs';
+    }
+    if (isCta) {
+      return isDark
+        ? 'bg-white/5 hover:bg-white/10 text-white border border-white/10'
+        : 'bg-black text-white hover:bg-neutral-800 shadow-sm';
+    }
+    return isDark
+      ? 'text-[#A1A1A1] hover:text-white hover:bg-[#121212]'
+      : 'text-neutral-600 hover:text-black hover:bg-neutral-100';
+  };
 
   return (
     <aside className={`w-60 shrink-0 border-r flex flex-col h-full overflow-hidden select-none transition-colors duration-150 ${
@@ -76,22 +92,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <button
             onClick={() => onSelectView('cases')}
-            className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg transition-colors cursor-pointer text-xs font-medium ${
-              activeView === 'cases'
-                ? isDark 
-                  ? 'bg-[#181818] text-white' 
-                  : 'bg-[#F3F4F6] text-black font-semibold'
-                : isDark
-                  ? 'text-[#A1A1A1] hover:text-white hover:bg-[#121212]'
-                  : 'text-neutral-600 hover:text-black hover:bg-neutral-100'
-            }`}
+            className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg transition-all duration-150 cursor-pointer text-xs ${getItemClass('cases')}`}
           >
             <div className="flex items-center space-x-2">
               <AlertCircle className="w-4 h-4 text-emerald-500" />
               <span>Recovery Cases</span>
             </div>
             <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
-              isDark ? 'bg-[#222222] text-[#D4D4D8]' : 'bg-neutral-200 text-neutral-700'
+              isDark ? 'bg-[#222222] text-[#D4D4D8]' : 'bg-neutral-200 text-neutral-700 font-semibold'
             }`}>
               {totalCasesCount}
             </span>
@@ -99,15 +107,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <button
             onClick={() => onSelectView('analytics')}
-            className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg transition-colors cursor-pointer text-xs font-medium ${
-              activeView === 'analytics'
-                ? isDark 
-                  ? 'bg-[#181818] text-white' 
-                  : 'bg-[#F3F4F6] text-black font-semibold'
-                : isDark
-                  ? 'text-[#A1A1A1] hover:text-white hover:bg-[#121212]'
-                  : 'text-neutral-600 hover:text-black hover:bg-neutral-100'
-            }`}
+            className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg transition-all duration-150 cursor-pointer text-xs ${getItemClass('analytics')}`}
           >
             <div className="flex items-center space-x-2">
               <LayoutDashboard className="w-4 h-4 text-blue-500" />
@@ -125,12 +125,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
           <button
-            onClick={onOpenBankHealth}
-            className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg transition-colors cursor-pointer text-xs ${
-              isDark 
-                ? 'text-[#A1A1A1] hover:text-white hover:bg-[#121212]' 
-                : 'text-neutral-600 hover:text-black hover:bg-neutral-100'
-            }`}
+            onClick={() => onSelectView('gateways')}
+            className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg transition-all duration-150 cursor-pointer text-xs ${getItemClass('gateways')}`}
           >
             <div className="flex items-center space-x-2">
               <Activity className="w-4 h-4 text-amber-500" />
@@ -150,12 +146,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
 
           <button
-            onClick={onOpenWebhookSandbox}
-            className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg transition-colors cursor-pointer text-xs ${
-              isDark 
-                ? 'text-[#A1A1A1] hover:text-white hover:bg-[#121212]' 
-                : 'text-neutral-600 hover:text-black hover:bg-neutral-100'
-            }`}
+            onClick={() => onSelectView('webhooks')}
+            className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg transition-all duration-150 cursor-pointer text-xs ${getItemClass('webhooks')}`}
           >
             <div className="flex items-center space-x-2">
               <Radio className="w-4 h-4 text-purple-500" />
@@ -164,12 +156,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
 
           <button
-            onClick={onOpenBatchSimulator}
-            className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg transition-colors cursor-pointer text-xs font-semibold ${
-              isDark 
-                ? 'bg-white/5 hover:bg-white/10 text-white border border-white/10' 
-                : 'bg-black text-white hover:bg-neutral-800 shadow-sm'
-            }`}
+            onClick={() => onSelectView('batch')}
+            className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg transition-all duration-150 cursor-pointer text-xs font-semibold ${getItemClass('batch', activeView !== 'batch')}`}
           >
             <div className="flex items-center space-x-2">
               <Play className="w-4 h-4 fill-current" />
@@ -187,12 +175,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
           <button
-            onClick={onOpenComplianceConfig}
-            className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg transition-colors cursor-pointer text-xs ${
-              isDark 
-                ? 'text-[#A1A1A1] hover:text-white hover:bg-[#121212]' 
-                : 'text-neutral-600 hover:text-black hover:bg-neutral-100'
-            }`}
+            onClick={() => onSelectView('compliance')}
+            className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg transition-all duration-150 cursor-pointer text-xs ${getItemClass('compliance')}`}
           >
             <div className="flex items-center space-x-2">
               <Shield className="w-4 h-4 text-indigo-500" />
@@ -202,12 +186,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
 
           <button
-            onClick={onOpenNewCase}
-            className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg transition-colors cursor-pointer text-xs ${
-              isDark 
-                ? 'text-[#A1A1A1] hover:text-white hover:bg-[#121212]' 
-                : 'text-neutral-600 hover:text-black hover:bg-neutral-100'
-            }`}
+            onClick={() => onSelectView('inject')}
+            className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg transition-all duration-150 cursor-pointer text-xs ${getItemClass('inject')}`}
           >
             <div className="flex items-center space-x-2">
               <PlusCircle className="w-4 h-4 text-emerald-500" />
@@ -240,7 +220,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Theme Toggle Button */}
           <button
             onClick={toggleTheme}
-            className={`p-2 rounded-lg border transition-colors cursor-pointer flex items-center justify-center shrink-0 ${
+            className={`p-2 rounded-lg border transition-all duration-150 hover:scale-[1.05] active:scale-[0.95] cursor-pointer flex items-center justify-center shrink-0 ${
               isDark 
                 ? 'bg-[#111111] hover:bg-[#1A1A1A] border-[#222222] text-[#D4D4D8] hover:text-white' 
                 : 'bg-white hover:bg-neutral-100 border-neutral-200 text-neutral-700 hover:text-black shadow-sm'
@@ -263,7 +243,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               Razorpay Merchant
             </div>
             <div className={`text-[10px] font-mono flex items-center gap-1 ${isDark ? 'text-[#71717A]' : 'text-neutral-500'}`}>
-              <UserCheck className="w-3 h-3 text-emerald-500" /> Verified
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+              Verified
             </div>
           </div>
         </div>

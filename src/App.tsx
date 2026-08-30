@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { Sidebar } from './shared/Sidebar';
+import type { ActiveWorkspaceView } from './shared/Sidebar';
 import { ExecutiveDashboard } from './features/recovery/ExecutiveDashboard';
 import { CasesTable } from './features/recovery/CasesTable';
 import { CaseDetailDrawer } from './features/recovery/CaseDetailDrawer';
-import { BatchSimulator } from './features/recovery/BatchSimulator';
+import { BankHealthView } from './features/bank-health/BankHealthView';
+import { WebhookSandboxView } from './features/webhooks/WebhookSandboxView';
+import { BatchRecoveryView } from './features/recovery/BatchRecoveryView';
+import { ComplianceConfigView } from './features/compliance/ComplianceConfigView';
+import { InjectLeakView } from './features/compliance/InjectLeakView';
+
 import { VoiceAgentModal } from './features/voice/VoiceAgentModal';
 import { WhatsAppPreviewModal } from './features/whatsapp/WhatsAppPreviewModal';
 import { AuditTrailModal } from './features/compliance/AuditTrailModal';
-import { ComplianceConfigModal } from './features/compliance/ComplianceConfigModal';
-import { NewCaseModal } from './features/compliance/NewCaseModal';
-import { BankHealthModal } from './features/bank-health/BankHealthModal';
-import { WebhookSandboxModal } from './features/webhooks/WebhookSandboxModal';
 import { B2BNegotiatorModal } from './features/b2b-negotiator/B2BNegotiatorModal';
 
 import { INITIAL_MOCK_CASES } from './features/recovery/MockData';
@@ -27,21 +29,25 @@ const recoveryAgent = new RevenueRecoveryAgent(complianceEngine);
 const bankHealthService = new BankHealthService();
 const webhookService = new WebhookService();
 
+const VIEW_TITLES: Record<ActiveWorkspaceView, string> = {
+  cases: 'All Recovery Cases',
+  analytics: 'Executive Overview & Analytics',
+  gateways: 'Gateway Downtime Pulse Matrix',
+  webhooks: 'Webhook Sandbox & Ingestion Engine',
+  batch: 'Autonomous Batch Recovery',
+  compliance: 'RBI & DPDP Guardrails Policy',
+  inject: 'Inject Revenue Leak Scenario'
+};
+
 function RevGuardApp() {
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === 'dark';
 
   const [cases, setCases] = useState<RecoveryCase[]>(INITIAL_MOCK_CASES);
-  const [activeView, setActiveView] = useState<'cases' | 'analytics'>('cases');
+  const [activeView, setActiveView] = useState<ActiveWorkspaceView>('cases');
   const [selectedDrawerCase, setSelectedDrawerCase] = useState<RecoveryCase | null>(null);
 
-  // Modal Dialogs State
-  const [isBatchOpen, setIsBatchOpen] = useState(false);
-  const [isComplianceOpen, setIsComplianceOpen] = useState(false);
-  const [isNewCaseOpen, setIsNewCaseOpen] = useState(false);
-  const [isBankHealthOpen, setIsBankHealthOpen] = useState(false);
-  const [isWebhookOpen, setIsWebhookOpen] = useState(false);
-
+  // Contextual Customer Action Modals
   const [selectedVoiceCase, setSelectedVoiceCase] = useState<RecoveryCase | null>(null);
   const [selectedWhatsAppCase, setSelectedWhatsAppCase] = useState<RecoveryCase | null>(null);
   const [selectedAuditCase, setSelectedAuditCase] = useState<RecoveryCase | null>(null);
@@ -123,11 +129,6 @@ function RevGuardApp() {
       <Sidebar
         activeView={activeView}
         onSelectView={(v) => setActiveView(v)}
-        onOpenBatchSimulator={() => setIsBatchOpen(true)}
-        onOpenComplianceConfig={() => setIsComplianceOpen(true)}
-        onOpenNewCase={() => setIsNewCaseOpen(true)}
-        onOpenBankHealth={() => setIsBankHealthOpen(true)}
-        onOpenWebhookSandbox={() => setIsWebhookOpen(true)}
         complianceEngine={complianceEngine}
         degradedBankCount={degradedBankCount}
         totalCasesCount={cases.length}
@@ -143,18 +144,22 @@ function RevGuardApp() {
             <span>Razorpay RevGuard</span>
             <ChevronRight className="w-3.5 h-3.5" />
             <span className={`font-medium capitalize ${isDark ? 'text-white' : 'text-neutral-900 font-semibold'}`}>
-              {activeView === 'cases' ? 'All Recovery Cases' : 'Executive Overview'}
+              {VIEW_TITLES[activeView] || 'Workspace'}
             </span>
           </div>
 
           <div className="flex items-center space-x-2">
             <button
-              onClick={() => setIsBankHealthOpen(true)}
+              onClick={() => setActiveView('gateways')}
               className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono border transition-all duration-150 hover:scale-[1.02] active:scale-[0.97] cursor-pointer ${
                 degradedBankCount > 0
                   ? isDark 
                     ? 'bg-amber-950/40 border-amber-800/40 text-amber-300' 
                     : 'bg-amber-50 border-amber-300 text-amber-800'
+                  : activeView === 'gateways'
+                  ? isDark
+                    ? 'bg-[#1E1E1E] border-white/30 text-white'
+                    : 'bg-neutral-200 border-neutral-400 text-black font-semibold'
                   : isDark 
                     ? 'bg-[#111111] border-[#222222] text-[#A1A1A1] hover:text-white' 
                     : 'bg-neutral-100 border-neutral-200 text-neutral-700 hover:text-black'
@@ -198,9 +203,11 @@ function RevGuardApp() {
             </button>
 
             <button
-              onClick={() => setIsBatchOpen(true)}
+              onClick={() => setActiveView('batch')}
               className={`flex items-center space-x-1.5 px-3 py-1 font-semibold text-xs rounded-md transition-all duration-150 hover:scale-[1.02] active:scale-[0.97] shadow-sm cursor-pointer ${
-                isDark 
+                activeView === 'batch'
+                  ? 'bg-emerald-600 text-white shadow-emerald-900/30'
+                  : isDark 
                   ? 'bg-white hover:bg-neutral-200 text-black' 
                   : 'bg-black hover:bg-neutral-800 text-white'
               }`}
@@ -211,11 +218,11 @@ function RevGuardApp() {
           </div>
         </header>
 
-        {/* Main Content Area */}
+        {/* Main Workspace Content Area */}
         <main className={`flex-1 overflow-auto p-6 transition-colors ${
           isDark ? 'bg-black' : 'bg-[#F9FAFB]'
         }`}>
-          {activeView === 'cases' ? (
+          {activeView === 'cases' && (
             <CasesTable
               cases={cases}
               selectedCaseId={selectedDrawerCase?.id ?? null}
@@ -224,9 +231,11 @@ function RevGuardApp() {
               onSelectWhatsAppCase={(c) => setSelectedWhatsAppCase(c)}
               onSelectAuditCase={(c) => setSelectedAuditCase(c)}
               onSelectNegotiateCase={(c) => setSelectedNegotiateCase(c)}
-              onOpenNewCaseModal={() => setIsNewCaseOpen(true)}
+              onOpenNewCaseModal={() => setActiveView('inject')}
             />
-          ) : (
+          )}
+
+          {activeView === 'analytics' && (
             <div className="space-y-6">
               <div>
                 <h2 className={`text-xl font-semibold tracking-tight ${isDark ? 'text-white' : 'text-neutral-900'}`}>
@@ -239,11 +248,49 @@ function RevGuardApp() {
               <ExecutiveDashboard cases={cases} />
             </div>
           )}
+
+          {activeView === 'gateways' && (
+            <BankHealthView
+              bankHealthService={bankHealthService}
+              cases={cases}
+              onUpdateCases={handleUpdateBatchCases}
+            />
+          )}
+
+          {activeView === 'webhooks' && (
+            <WebhookSandboxView
+              webhookService={webhookService}
+              onInjectCase={handleAddCase}
+            />
+          )}
+
+          {activeView === 'batch' && (
+            <BatchRecoveryView
+              cases={cases}
+              onUpdateCases={handleUpdateBatchCases}
+              complianceEngine={complianceEngine}
+              recoveryAgent={recoveryAgent}
+            />
+          )}
+
+          {activeView === 'compliance' && (
+            <ComplianceConfigView
+              complianceEngine={complianceEngine}
+              onSettingsUpdated={() => setCases([...cases])}
+            />
+          )}
+
+          {activeView === 'inject' && (
+            <InjectLeakView
+              onAddCase={handleAddCase}
+              onNavigateToCases={() => setActiveView('cases')}
+            />
+          )}
         </main>
       </div>
 
-      {/* Column 3: Right Slide-in Case Inspector Drawer */}
-      {selectedDrawerCase && (
+      {/* Column 3: Right Slide-in Case Inspector Drawer (When on cases view) */}
+      {activeView === 'cases' && selectedDrawerCase && (
         <CaseDetailDrawer
           rcase={selectedDrawerCase}
           onClose={() => setSelectedDrawerCase(null)}
@@ -255,16 +302,7 @@ function RevGuardApp() {
         />
       )}
 
-      {/* Modals & Dialogs */}
-      <BatchSimulator
-        isOpen={isBatchOpen}
-        onClose={() => setIsBatchOpen(false)}
-        cases={cases}
-        recoveryAgent={recoveryAgent}
-        complianceEngine={complianceEngine}
-        onUpdateCases={handleUpdateBatchCases}
-      />
-
+      {/* Focused Customer Action Modals */}
       <VoiceAgentModal
         isOpen={!!selectedVoiceCase}
         onClose={() => setSelectedVoiceCase(null)}
@@ -284,37 +322,6 @@ function RevGuardApp() {
         isOpen={!!selectedAuditCase}
         onClose={() => setSelectedAuditCase(null)}
         rcase={selectedAuditCase}
-      />
-
-      <ComplianceConfigModal
-        isOpen={isComplianceOpen}
-        onClose={() => setIsComplianceOpen(false)}
-        complianceEngine={complianceEngine}
-        onSettingsUpdated={() => {}}
-      />
-
-      <NewCaseModal
-        isOpen={isNewCaseOpen}
-        onClose={() => setIsNewCaseOpen(false)}
-        onAddCase={handleAddCase}
-      />
-
-      <BankHealthModal
-        isOpen={isBankHealthOpen}
-        onClose={() => setIsBankHealthOpen(false)}
-        bankHealthService={bankHealthService}
-        cases={cases}
-        onUpdateCases={handleUpdateBatchCases}
-      />
-
-      <WebhookSandboxModal
-        isOpen={isWebhookOpen}
-        onClose={() => setIsWebhookOpen(false)}
-        webhookService={webhookService}
-        onInjectCase={(newCase) => {
-          setCases(prev => [newCase, ...prev]);
-          setSelectedDrawerCase(newCase);
-        }}
       />
 
       <B2BNegotiatorModal
