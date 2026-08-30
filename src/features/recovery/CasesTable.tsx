@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { 
   Search, CheckCircle2, AlertTriangle, 
-  ShieldAlert, ArrowUpRight, Clock, Plus, X, User
+  ShieldAlert, ArrowUpRight, Clock, Plus, X, User,
+  Mic, MessageSquare, Handshake, FileText
 } from 'lucide-react';
 import type { RecoveryCase, LeakVector, CaseStatus } from './types';
 import { useTheme } from '../../shared/ThemeContext';
@@ -370,47 +371,47 @@ export const CasesTable: React.FC<CasesTableProps> = ({
                       <div className="flex items-center justify-end space-x-1" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => onSelectVoiceCase(rcase)}
-                          className={`p-1.5 rounded-md border transition-colors cursor-pointer ${
+                          className={`p-1.5 rounded-md border transition-all duration-150 hover:scale-[1.08] active:scale-[0.92] cursor-pointer ${
                             isDark 
-                              ? 'bg-[#111111] hover:bg-[#1E1E1E] text-[#A1A1A1] hover:text-white border-[#222222]' 
-                              : 'bg-white hover:bg-neutral-100 text-neutral-600 hover:text-black border-neutral-300 shadow-sm'
+                              ? 'bg-[#111111] hover:bg-[#1E1E1E] text-indigo-400 border-[#222222]' 
+                              : 'bg-white hover:bg-neutral-100 text-indigo-600 border-neutral-300 shadow-xs'
                           }`}
                           title="Hinglish Voice AI Simulation"
                         >
-                          🎤
+                          <Mic className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => onSelectWhatsAppCase(rcase)}
-                          className={`p-1.5 rounded-md border transition-colors cursor-pointer ${
+                          className={`p-1.5 rounded-md border transition-all duration-150 hover:scale-[1.08] active:scale-[0.92] cursor-pointer ${
                             isDark 
-                              ? 'bg-[#111111] hover:bg-[#1E1E1E] text-[#A1A1A1] hover:text-white border-[#222222]' 
-                              : 'bg-white hover:bg-neutral-100 text-neutral-600 hover:text-black border-neutral-300 shadow-sm'
+                              ? 'bg-[#111111] hover:bg-[#1E1E1E] text-emerald-400 border-[#222222]' 
+                              : 'bg-white hover:bg-neutral-100 text-emerald-600 border-neutral-300 shadow-xs'
                           }`}
                           title="1-Tap UPI WhatsApp Preview"
                         >
-                          💬
+                          <MessageSquare className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => onSelectNegotiateCase(rcase)}
-                          className={`p-1.5 rounded-md border transition-colors cursor-pointer ${
+                          className={`p-1.5 rounded-md border transition-all duration-150 hover:scale-[1.08] active:scale-[0.92] cursor-pointer ${
                             isDark 
-                              ? 'bg-[#111111] hover:bg-[#1E1E1E] text-[#A1A1A1] hover:text-white border-[#222222]' 
-                              : 'bg-white hover:bg-neutral-100 text-neutral-600 hover:text-black border-neutral-300 shadow-sm'
+                              ? 'bg-[#111111] hover:bg-[#1E1E1E] text-amber-400 border-[#222222]' 
+                              : 'bg-white hover:bg-neutral-100 text-amber-600 border-neutral-300 shadow-xs'
                           }`}
                           title="B2B Settlement Negotiator"
                         >
-                          🤝
+                          <Handshake className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => onSelectAuditCase(rcase)}
-                          className={`p-1.5 rounded-md border transition-colors cursor-pointer ${
+                          className={`p-1.5 rounded-md border transition-all duration-150 hover:scale-[1.08] active:scale-[0.92] cursor-pointer ${
                             isDark 
                               ? 'bg-[#111111] hover:bg-[#1E1E1E] text-[#A1A1A1] hover:text-white border-[#222222]' 
-                              : 'bg-white hover:bg-neutral-100 text-neutral-600 hover:text-black border-neutral-300 shadow-sm'
+                              : 'bg-white hover:bg-neutral-100 text-neutral-600 hover:text-black border-neutral-300 shadow-xs'
                           }`}
-                          title="Immutable Audit Trail"
+                          title="Immutable Cryptographic Audit Trail"
                         >
-                          📋
+                          <FileText className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>

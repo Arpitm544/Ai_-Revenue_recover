@@ -45,8 +45,12 @@ export const BankHealthView: React.FC<BankHealthViewProps> = ({
             </h2>
             <span className={`px-2 py-0.5 text-[10px] font-mono rounded ${
               degradedCount > 0 
-                ? 'bg-amber-950/50 text-amber-400 border border-amber-800/40' 
-                : 'bg-emerald-950/50 text-emerald-400 border border-emerald-800/40'
+                ? isDark
+                  ? 'bg-amber-950/50 text-amber-400 border border-amber-800/40' 
+                  : 'bg-amber-100 text-amber-800 border border-amber-300 font-semibold'
+                : isDark
+                  ? 'bg-emerald-950/50 text-emerald-400 border border-emerald-800/40'
+                  : 'bg-emerald-100 text-emerald-800 border border-emerald-300 font-semibold'
             }`}>
               {degradedCount > 0 ? `${degradedCount} Bank Degraded` : 'All Gateways Operational'}
             </span>
