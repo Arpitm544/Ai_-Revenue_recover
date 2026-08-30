@@ -9,17 +9,20 @@ import { AuditTrailModal } from './components/AuditTrailModal';
 import { ComplianceConfigModal } from './components/ComplianceConfigModal';
 import { NewCaseModal } from './components/NewCaseModal';
 import { BankHealthModal } from './components/BankHealthModal';
+import { WebhookSandboxModal } from './components/WebhookSandboxModal';
 
 import { INITIAL_MOCK_CASES, generateMockBatchCases } from './services/mockData';
 import { ComplianceEngine } from './services/complianceEngine';
 import { RevenueRecoveryAgent } from './services/recoveryAgent';
 import { BankHealthService } from './services/bankHealthService';
+import { WebhookService } from './services/webhookService';
 import type { RecoveryCase } from './types/recovery';
 
 export function App() {
   const complianceEngine = useMemo(() => new ComplianceEngine(), []);
   const recoveryAgent = useMemo(() => new RevenueRecoveryAgent(complianceEngine), [complianceEngine]);
   const bankHealthService = useMemo(() => new BankHealthService(), []);
+  const webhookService = useMemo(() => new WebhookService(), []);
 
   const [cases, setCases] = useState<RecoveryCase[]>(() => [
     ...INITIAL_MOCK_CASES,
@@ -31,6 +34,7 @@ export function App() {
   const [isComplianceOpen, setIsComplianceOpen] = useState(false);
   const [isNewCaseOpen, setIsNewCaseOpen] = useState(false);
   const [isBankHealthOpen, setIsBankHealthOpen] = useState(false);
+  const [isWebhookOpen, setIsWebhookOpen] = useState(false);
 
   const [selectedVoiceCase, setSelectedVoiceCase] = useState<RecoveryCase | null>(null);
   const [selectedWhatsAppCase, setSelectedWhatsAppCase] = useState<RecoveryCase | null>(null);
@@ -70,6 +74,7 @@ export function App() {
         onOpenComplianceConfig={() => setIsComplianceOpen(true)}
         onOpenNewCase={() => setIsNewCaseOpen(true)}
         onOpenBankHealth={() => setIsBankHealthOpen(true)}
+        onOpenWebhookSandbox={() => setIsWebhookOpen(true)}
         complianceEngine={complianceEngine}
         degradedBankCount={degradedBankCount}
       />
@@ -178,6 +183,13 @@ export function App() {
         bankHealthService={bankHealthService}
         cases={cases}
         onUpdateCases={handleUpdateBatchCases}
+      />
+
+      <WebhookSandboxModal
+        isOpen={isWebhookOpen}
+        onClose={() => setIsWebhookOpen(false)}
+        webhookService={webhookService}
+        onInjectCase={(newCase) => setCases(prev => [newCase, ...prev])}
       />
     </div>
   );

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, Play, Settings, PlusCircle, AlertCircle, Activity } from 'lucide-react';
+import { ShieldCheck, Play, Settings, PlusCircle, AlertCircle, Activity, Radio } from 'lucide-react';
 import { ComplianceEngine } from '../services/complianceEngine';
 
 interface NavbarProps {
@@ -7,6 +7,7 @@ interface NavbarProps {
   onOpenComplianceConfig: () => void;
   onOpenNewCase: () => void;
   onOpenBankHealth: () => void;
+  onOpenWebhookSandbox: () => void;
   complianceEngine: ComplianceEngine;
   degradedBankCount: number;
 }
@@ -16,6 +17,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenComplianceConfig,
   onOpenNewCase,
   onOpenBankHealth,
+  onOpenWebhookSandbox,
   complianceEngine,
   degradedBankCount
 }) => {
@@ -74,6 +76,15 @@ export const Navbar: React.FC<NavbarProps> = ({
           )}
 
           {/* Action Buttons */}
+          <button
+            onClick={onOpenWebhookSandbox}
+            className="flex items-center space-x-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-blue-300 text-sm font-medium rounded-lg border border-slate-700 transition-all cursor-pointer"
+            title="Razorpay Webhook Ingestion Sandbox"
+          >
+            <Radio className="w-4 h-4" />
+            <span className="hidden sm:inline">Webhooks</span>
+          </button>
+
           <button
             onClick={onOpenBatchSimulator}
             className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium text-sm rounded-lg shadow-md shadow-blue-600/25 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
