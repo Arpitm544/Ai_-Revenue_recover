@@ -155,8 +155,8 @@ export const BankHealthView: React.FC<BankHealthViewProps> = ({
                 isDark ? 'hover:bg-[#111111]' : 'hover:bg-neutral-50'
               }`}>
                 {/* Bank Name & Status */}
-                <div className="flex items-center space-x-3 min-w-[200px]">
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs ${
+                <div className="flex items-center space-x-3 min-w-[220px]">
+                  <div className={`min-w-[52px] h-9 px-2 rounded-xl flex items-center justify-center font-mono font-bold text-[11px] shrink-0 tracking-tight ${
                     isDegraded 
                       ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' 
                       : 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'

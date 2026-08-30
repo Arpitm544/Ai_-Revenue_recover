@@ -53,7 +53,7 @@ export const INITIAL_BANK_HEALTH: BankHealthNode[] = [
   },
   {
     id: 'bank_kotak',
-    bankName: 'Kotak Mahindra',
+    bankName: 'Kotak Mahindra Bank',
     code: 'KOTAK',
     status: 'OPERATIONAL',
     successRate: 98.1,
