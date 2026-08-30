@@ -126,8 +126,6 @@ export const WebhookSandboxModal: React.FC<WebhookSandboxModalProps> = ({
 
   if (!isOpen) return null;
 
-  const c = COLOR_MAP[selectedTemplate.color] ?? COLOR_MAP['red'];
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
       <div

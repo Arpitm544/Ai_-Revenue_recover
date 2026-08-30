@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, PhoneCall, MessageSquare, FileText, CheckCircle2, AlertTriangle, ShieldAlert, ArrowUpRight, Clock, Plus } from 'lucide-react';
+import { Search, PhoneCall, MessageSquare, FileText, CheckCircle2, AlertTriangle, ShieldAlert, ArrowUpRight, Clock, Plus, Handshake } from 'lucide-react';
 import type { RecoveryCase, LeakVector, CaseStatus } from '../types/recovery';
 
 interface CasesTableProps {
@@ -9,6 +9,7 @@ interface CasesTableProps {
   onSelectAuditCase: (rcase: RecoveryCase) => void;
   onInterveneSingle: (rcase: RecoveryCase) => void;
   onOpenNewCaseModal: () => void;
+  onSelectNegotiateCase: (rcase: RecoveryCase) => void;
 }
 
 export const CasesTable: React.FC<CasesTableProps> = ({
@@ -16,7 +17,8 @@ export const CasesTable: React.FC<CasesTableProps> = ({
   onSelectVoiceCase,
   onSelectWhatsAppCase,
   onSelectAuditCase,
-  onOpenNewCaseModal
+  onOpenNewCaseModal,
+  onSelectNegotiateCase,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [vectorFilter, setVectorFilter] = useState<string>('ALL');
@@ -195,6 +197,17 @@ export const CasesTable: React.FC<CasesTableProps> = ({
                   {/* Interactive Action Trigger Buttons */}
                   <td className="py-3.5 px-4 text-right">
                     <div className="flex items-center justify-end space-x-1.5">
+                      {/* B2B Negotiate Button — only for B2B invoices ≥ ₹45K */}
+                      {rcase.leakVector === 'B2B_INVOICE' && rcase.amountAtRisk >= 45000 && (
+                        <button
+                          onClick={() => onSelectNegotiateCase(rcase)}
+                          className="p-2 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 hover:text-white rounded-lg border border-purple-500/30 transition-all cursor-pointer"
+                          title="Open B2B Milestone Settlement Negotiator"
+                        >
+                          <Handshake className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+
                       {/* Hinglish Voice Call Button */}
                       <button
                         onClick={() => onSelectVoiceCase(rcase)}

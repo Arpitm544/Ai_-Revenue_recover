@@ -10,6 +10,7 @@ import { ComplianceConfigModal } from './components/ComplianceConfigModal';
 import { NewCaseModal } from './components/NewCaseModal';
 import { BankHealthModal } from './components/BankHealthModal';
 import { WebhookSandboxModal } from './components/WebhookSandboxModal';
+import { B2BNegotiatorModal } from './components/B2BNegotiatorModal';
 
 import { INITIAL_MOCK_CASES, generateMockBatchCases } from './services/mockData';
 import { ComplianceEngine } from './services/complianceEngine';
@@ -39,6 +40,7 @@ export function App() {
   const [selectedVoiceCase, setSelectedVoiceCase] = useState<RecoveryCase | null>(null);
   const [selectedWhatsAppCase, setSelectedWhatsAppCase] = useState<RecoveryCase | null>(null);
   const [selectedAuditCase, setSelectedAuditCase] = useState<RecoveryCase | null>(null);
+  const [selectedNegotiateCase, setSelectedNegotiateCase] = useState<RecoveryCase | null>(null);
 
   // Computed Bank Outage Count
   const degradedBankCount = bankHealthService.getBanks().filter(b => b.status === 'DEGRADED' || b.status === 'OUTAGE').length;
@@ -122,6 +124,7 @@ export function App() {
           onSelectAuditCase={(c) => setSelectedAuditCase(c)}
           onInterveneSingle={handleInterveneSingle}
           onOpenNewCaseModal={() => setIsNewCaseOpen(true)}
+          onSelectNegotiateCase={(c) => setSelectedNegotiateCase(c)}
         />
       </main>
 
@@ -190,6 +193,13 @@ export function App() {
         onClose={() => setIsWebhookOpen(false)}
         webhookService={webhookService}
         onInjectCase={(newCase) => setCases(prev => [newCase, ...prev])}
+      />
+
+      <B2BNegotiatorModal
+        isOpen={!!selectedNegotiateCase}
+        onClose={() => setSelectedNegotiateCase(null)}
+        rcase={selectedNegotiateCase}
+        onUpdateCase={handleUpdateCase}
       />
     </div>
   );
