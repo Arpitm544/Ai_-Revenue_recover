@@ -69,7 +69,7 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#030712] text-slate-100 font-sans selection:bg-blue-500 selection:text-white flex flex-col">
+    <div className="min-h-screen bg-black text-[#EDEDED] font-sans selection:bg-white selection:text-black flex flex-col">
       {/* Top Navbar */}
       <Navbar
         onOpenBatchSimulator={() => setIsBatchOpen(true)}
@@ -82,33 +82,33 @@ export function App() {
       />
 
       {/* Main App Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Banner Announcement */}
-        <div className="rounded-2xl bg-gradient-to-r from-blue-900/40 via-indigo-900/30 to-purple-900/40 border border-blue-500/20 p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+        <div className="rounded-xl bg-[#0A0A0A] border border-[#1F1F1F] p-4 sm:p-4.5 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="space-y-1 text-center sm:text-left">
             <div className="flex items-center justify-center sm:justify-start space-x-2">
-              <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded-md bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                Razorpay Hackathon • Track 03
+              <span className="px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-wider rounded bg-[#161616] text-[#A1A1A1] border border-[#262626]">
+                Track 03 · AI Revenue Recovery
               </span>
-              <h2 className="text-sm font-bold text-white">AI Revenue Recovery Engine</h2>
+              <h2 className="text-xs font-semibold text-white">Autonomous Revenue Recovery Engine</h2>
             </div>
-            <p className="text-xs text-slate-300">
-              Autonomous multi-vector detection, Hinglish Voice & 1-Tap UPI interventions, Bank Downtime Hold Sequencer, and live money recovery ledger.
+            <p className="text-xs text-[#71717A]">
+              Multi-vector detection, Speech-to-Speech Hinglish Voice AI, 1-Tap UPI interventions, Bank Downtime Hold Sequencer & B2B Settlement Negotiator.
             </p>
           </div>
 
           <div className="flex items-center space-x-2 shrink-0">
             <button
               onClick={() => setIsBankHealthOpen(true)}
-              className="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs rounded-xl border border-slate-700 transition-all cursor-pointer"
+              className="px-3 py-1.5 bg-[#141414] hover:bg-[#1F1F1F] text-[#D4D4D8] font-medium text-xs rounded-lg border border-[#27272A] transition-all cursor-pointer"
             >
-              Bank Health Pulse
+              Bank Health
             </button>
             <button
               onClick={() => setIsBatchOpen(true)}
-              className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 transition-all cursor-pointer"
+              className="px-3.5 py-1.5 bg-white hover:bg-neutral-200 text-black font-semibold text-xs rounded-lg transition-all shadow-sm cursor-pointer"
             >
-              Run Batch Simulator
+              Run Batch Simulation
             </button>
           </div>
         </div>
@@ -129,9 +129,9 @@ export function App() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-800 bg-slate-950 py-6 text-center text-xs text-slate-500">
+      <footer className="border-t border-[#1F1F1F] bg-black py-5 text-center text-xs text-[#71717A]">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>Razorpay RevGuard AI • Track 03: AI Revenue Recovery</span>
+          <span>Razorpay RevGuard AI · Track 03: AI Revenue Recovery</span>
           <span>Compliant Escalation & Bank Gateway Sequencer</span>
         </div>
       </footer>
