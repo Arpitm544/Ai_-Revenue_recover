@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Zap, CheckCircle2, AlertTriangle, Shield, Radio } from 'lucide-react';
+import { X, Zap, CheckCircle2, AlertTriangle, Shield, Radio, Check } from 'lucide-react';
 import type { RecoveryCase } from '../recovery/types';
 import type { WebhookIngestionLog, WebhookTemplate, WebhookStep } from './types';
 import { WebhookService } from './WebhookService';
@@ -7,38 +7,31 @@ import { WebhookService } from './WebhookService';
 interface WebhookSandboxModalProps {
   isOpen: boolean;
   onClose: () => void;
-  webhookService: WebhookService;
   onInjectCase: (newCase: RecoveryCase) => void;
+  webhookService: WebhookService;
 }
 
 const COLOR_MAP: Record<string, { badge: string; ring: string; text: string; dot: string }> = {
-  red:    { badge: 'bg-red-950/60 border-red-500/50 text-red-200',       ring: 'ring-red-500/50',    text: 'text-red-400',    dot: 'bg-red-400' },
-  amber:  { badge: 'bg-amber-950/60 border-amber-500/50 text-amber-200', ring: 'ring-amber-500/50',  text: 'text-amber-400',  dot: 'bg-amber-400' },
-  orange: { badge: 'bg-orange-950/60 border-orange-500/50 text-orange-200', ring: 'ring-orange-500/50', text: 'text-orange-400', dot: 'bg-orange-400' },
-  purple: { badge: 'bg-purple-950/60 border-purple-500/50 text-purple-200', ring: 'ring-purple-500/50', text: 'text-purple-400', dot: 'bg-purple-400' },
-};
-
-const EVENT_COLORS: Record<string, string> = {
-  'payment.failed':      'bg-red-900/40 text-red-300 border-red-700/50',
-  'subscription.halted': 'bg-amber-900/40 text-amber-300 border-amber-700/50',
-  'order.abandoned':     'bg-orange-900/40 text-orange-300 border-orange-700/50',
-  'invoice.expired':     'bg-purple-900/40 text-purple-300 border-purple-700/50',
+  red:    { badge: 'bg-red-950/40 border-red-800/50 text-red-300',       ring: 'ring-1 ring-red-500/40',    text: 'text-red-400',    dot: 'bg-red-400' },
+  amber:  { badge: 'bg-amber-950/40 border-amber-800/50 text-amber-300', ring: 'ring-1 ring-amber-500/40',  text: 'text-amber-400',  dot: 'bg-amber-400' },
+  orange: { badge: 'bg-orange-950/40 border-orange-800/50 text-orange-300', ring: 'ring-1 ring-orange-500/40', text: 'text-orange-400', dot: 'bg-orange-400' },
+  purple: { badge: 'bg-purple-950/40 border-purple-800/50 text-purple-300', ring: 'ring-1 ring-purple-500/40', text: 'text-purple-400', dot: 'bg-purple-400' },
 };
 
 function StepRow({ step }: { step: WebhookStep }) {
   return (
-    <div className="flex items-start gap-3 animate-[fadeInLeft_0.3s_ease_forwards]">
-      <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 border ${step.status === 'OK' ? 'bg-emerald-500/20 border-emerald-500/60' : 'bg-red-500/20 border-red-500/60'}`}>
+    <div className="flex items-start gap-2.5 animate-in fade-in slide-in-from-left duration-200">
+      <div className={`mt-0.5 w-4.5 h-4.5 rounded-full flex items-center justify-center shrink-0 border ${step.status === 'OK' ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400' : 'bg-red-500/10 border-red-500/40 text-red-400'}`}>
         {step.status === 'OK'
-          ? <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-          : <AlertTriangle className="w-3 h-3 text-red-400" />}
+          ? <Check className="w-2.5 h-2.5" />
+          : <AlertTriangle className="w-2.5 h-2.5" />}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-xs font-semibold text-slate-100">{step.label}</span>
-          <span className="text-[10px] text-slate-500 font-mono shrink-0">{step.durationMs}ms</span>
+          <span className="text-xs font-medium text-white">{step.label}</span>
+          <span className="text-[10px] text-[#71717A] font-mono shrink-0">{step.durationMs}ms</span>
         </div>
-        <p className="text-[10px] text-slate-400 font-mono truncate mt-0.5">{step.detail}</p>
+        <p className="text-[10px] text-[#A1A1A1] font-mono truncate mt-0.5">{step.detail}</p>
       </div>
     </div>
   );
@@ -46,16 +39,16 @@ function StepRow({ step }: { step: WebhookStep }) {
 
 function LogBadge({ log }: { log: WebhookIngestionLog }) {
   return (
-    <div className="p-3 bg-slate-800/50 border border-slate-700/40 rounded-xl space-y-1.5 hover:bg-slate-800 transition-colors">
+    <div className="p-2.5 bg-[#111111] border border-[#222222] rounded-lg space-y-1 hover:border-[#333333] transition-colors">
       <div className="flex items-center justify-between gap-2">
-        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${EVENT_COLORS[log.event] ?? 'bg-slate-700 text-slate-300'}`}>
+        <span className="text-[9px] font-mono font-medium px-1.5 py-0.5 rounded bg-[#181818] text-[#D4D4D8] border border-[#2A2A2A]">
           {log.event}
         </span>
-        <span className="text-[10px] text-emerald-400 font-bold">₹{log.amountINR.toLocaleString('en-IN')}</span>
+        <span className="text-[10px] text-emerald-400 font-mono font-semibold">₹{log.amountINR.toLocaleString('en-IN')}</span>
       </div>
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-white font-medium truncate">{log.parsedCustomerName}</span>
-        <span className="text-[10px] text-slate-500 font-mono">{log.processingMs}ms</span>
+      <div className="flex items-center justify-between text-xs">
+        <span className="text-[#EDEDED] truncate font-medium">{log.parsedCustomerName}</span>
+        <span className="text-[10px] text-[#71717A] font-mono">{log.processingMs}ms</span>
       </div>
     </div>
   );
@@ -98,7 +91,7 @@ export const WebhookSandboxModal: React.FC<WebhookSandboxModalProps> = ({
       JSON.parse(val);
       setParseError('');
     } catch {
-      setParseError('Invalid JSON');
+      setParseError('Invalid JSON syntax');
     }
   };
 
@@ -121,43 +114,46 @@ export const WebhookSandboxModal: React.FC<WebhookSandboxModalProps> = ({
         setLogs(webhookService.getLogs());
         onInjectCase(recoveryCase);
       }
-    }, 300);
+    }, 250);
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-150">
       <div
-        className="relative w-full bg-[#0d1117] border border-slate-700/50 rounded-2xl shadow-2xl overflow-hidden"
-        style={{ maxWidth: '960px', height: '88vh', display: 'flex', flexDirection: 'column' }}
+        className="relative w-full max-w-5xl bg-[#0A0A0A] border border-[#1F1F1F] rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+        style={{ height: '84vh' }}
       >
-        {/* ── Header ── */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 shrink-0 bg-slate-900/60">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-500/15 border border-blue-500/25 flex items-center justify-center">
-              <Radio className="w-4 h-4 text-blue-400" />
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-3.5 border-b border-[#1F1F1F] shrink-0 bg-[#000000]">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-white">
+              <Radio className="w-4 h-4 text-purple-400" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-white tracking-tight">Razorpay Webhook Ingestion Sandbox</h2>
-              <p className="text-[11px] text-slate-400 mt-0.5">Fire live events → HMAC verify → diagnose → recover. Real-time.</p>
+              <h2 className="text-sm font-semibold text-white tracking-tight">Razorpay Webhook Sandbox</h2>
+              <p className="text-[11px] text-[#71717A]">Fire simulated failure events → HMAC verify → diagnose & recover</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 text-slate-500 hover:text-white hover:bg-slate-800 rounded-lg transition-all cursor-pointer">
-            <X className="w-5 h-5" />
+          <button 
+            onClick={onClose} 
+            className="p-1.5 text-[#71717A] hover:text-white hover:bg-[#1A1A1A] rounded-lg transition-colors cursor-pointer"
+          >
+            <X className="w-4.5 h-4.5" />
           </button>
         </div>
 
-        {/* ── Body (two columns) ── */}
+        {/* Body Split Columns */}
         <div className="flex flex-1 overflow-hidden min-h-0">
-
-          {/* ── LEFT PANEL ── */}
-          <div className="flex flex-col border-r border-slate-800" style={{ width: '48%' }}>
-
-            {/* Event Template Picker */}
-            <div className="px-5 pt-5 pb-3 shrink-0">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Select Webhook Event</p>
-              <div className="grid grid-cols-2 gap-2.5">
+          {/* Left Panel: Templates & JSON Editor */}
+          <div className="flex flex-col border-r border-[#1F1F1F] w-[50%] p-5 space-y-4 overflow-hidden">
+            {/* Event Template Buttons */}
+            <div className="shrink-0 space-y-2">
+              <div className="text-[10px] font-mono uppercase tracking-wider text-[#71717A]">
+                Select Event Template
+              </div>
+              <div className="grid grid-cols-2 gap-2">
                 {templates.map((t) => {
                   const tc = COLOR_MAP[t.color] ?? COLOR_MAP['red'];
                   const active = selectedTemplate.event === t.event;
@@ -165,89 +161,98 @@ export const WebhookSandboxModal: React.FC<WebhookSandboxModalProps> = ({
                     <button
                       key={t.event}
                       onClick={() => handleSelectTemplate(t)}
-                      className={`p-3 rounded-xl border text-left transition-all duration-150 cursor-pointer ${
+                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                         active
-                          ? `${tc.badge} ring-1 ${tc.ring}`
-                          : 'bg-slate-800/40 border-slate-700/40 hover:bg-slate-800 hover:border-slate-600/60'
+                          ? `${tc.badge} ${tc.ring}`
+                          : 'bg-[#111111] border-[#222222] hover:border-[#333333]'
                       }`}
                     >
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span className="text-lg leading-none">{t.icon}</span>
-                        <span className={`text-[11px] font-bold leading-tight ${active ? tc.text : 'text-slate-200'}`}>{t.label}</span>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-sm">{t.icon}</span>
+                        <span className={`text-xs font-semibold ${active ? 'text-white' : 'text-[#EDEDED]'}`}>{t.label}</span>
                       </div>
-                      <p className="text-[10px] text-slate-500 leading-snug">{t.description}</p>
+                      <p className="text-[10px] text-[#71717A] line-clamp-1">{t.description}</p>
                     </button>
                   );
                 })}
               </div>
             </div>
 
-            {/* Divider */}
-            <div className="mx-5 border-t border-slate-800 shrink-0" />
-
-            {/* Payload Editor — fills remaining height */}
-            <div className="flex flex-col flex-1 px-5 pt-3 pb-5 min-h-0 gap-2">
+            {/* JSON Payload Editor */}
+            <div className="flex flex-col flex-1 min-h-0 space-y-2">
               <div className="flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Payload Editor</p>
-                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">JSON</span>
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#71717A]">Payload Editor</span>
+                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#161616] text-[#888888] font-mono border border-[#222222]">JSON</span>
                 </div>
-                {parseError
-                  ? <span className="text-[10px] text-red-400 font-medium flex items-center gap-1"><AlertTriangle className="w-3 h-3" />{parseError}</span>
-                  : <span className="text-[10px] text-emerald-500 font-medium">✓ Valid JSON</span>
-                }
+                {parseError ? (
+                  <span className="text-[10px] text-red-400 flex items-center gap-1 font-mono">
+                    <AlertTriangle className="w-3 h-3" /> {parseError}
+                  </span>
+                ) : (
+                  <span className="text-[10px] text-emerald-400 font-mono">✓ Valid Payload</span>
+                )}
               </div>
 
-              {/* Textarea fills remaining space */}
               <textarea
-                className="flex-1 resize-none bg-slate-950 border border-slate-700/50 rounded-xl p-3 text-[11px] text-emerald-300 font-mono focus:outline-none focus:ring-1 focus:ring-blue-500/50 leading-relaxed min-h-0"
+                className="flex-1 resize-none bg-[#020804] border border-emerald-950/70 rounded-xl p-3.5 text-[11px] text-emerald-400 font-mono focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/20 leading-relaxed min-h-0 selection:bg-emerald-500/30 selection:text-white"
                 value={editedPayload}
                 onChange={(e) => handlePayloadChange(e.target.value)}
                 spellCheck={false}
               />
 
-              {/* Fire Webhook Button */}
+              {/* Action Button */}
               <button
                 onClick={handleFireWebhook}
                 disabled={!!parseError || isFiring}
-                className={`shrink-0 w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                className={`shrink-0 w-full py-2.5 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm ${
                   parseError || isFiring
-                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
-                    : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-lg shadow-blue-700/30'
+                    ? 'bg-[#181818] text-[#52525B] cursor-not-allowed border border-[#262626]'
+                    : 'bg-white hover:bg-neutral-200 text-black'
                 }`}
               >
-                {isFiring
-                  ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Ingesting…</>
-                  : <><Zap className="w-4 h-4" /> Fire Webhook</>
-                }
+                {isFiring ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                    <span>Ingesting Event…</span>
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-3.5 h-3.5 fill-black" />
+                    <span>Fire Webhook Event</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
 
-          {/* ── RIGHT PANEL ── */}
-          <div className="flex flex-col flex-1 overflow-hidden min-h-0">
+          {/* Right Panel: Ingestion Telemetry & Ledger Injection */}
+          <div className="flex flex-col flex-1 overflow-hidden min-h-0 bg-[#070707] p-5 space-y-4">
+            <div className="flex items-center justify-between shrink-0">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-[#71717A]">
+                Live Ingestion Telemetry
+              </span>
+              {isFiring && (
+                <span className="text-[10px] text-purple-400 font-mono animate-pulse flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-ping" />
+                  Processing HMAC & Diagnostic Pipeline
+                </span>
+              )}
+            </div>
 
-            {/* Telemetry area — scrollable */}
-            <div className="flex-1 overflow-y-auto px-5 pt-5 pb-3 space-y-4 min-h-0">
-              <div className="flex items-center justify-between shrink-0">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Live Ingestion Telemetry</p>
-                {isFiring && (
-                  <span className="text-[10px] text-blue-400 font-semibold animate-pulse flex items-center gap-1">
-                    <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-ping" /> Processing
-                  </span>
-                )}
-              </div>
-
-              {/* Active Steps Panel */}
+            {/* Scrollable Telemetry Area */}
+            <div className="flex-1 overflow-y-auto space-y-3 min-h-0">
               {(isFiring || activeLog) && (
-                <div className="bg-slate-950/70 border border-slate-700/40 rounded-xl p-4 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full shrink-0 ${isFiring ? 'bg-blue-400 animate-pulse' : 'bg-emerald-400'}`} />
-                    <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">
-                      {isFiring ? 'Ingesting…' : `Completed in ${activeLog?.processingMs}ms`}
-                    </span>
+                <div className="bg-[#0D0D0D] border border-[#1F1F1F] rounded-xl p-4 space-y-3">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <div className="flex items-center gap-2 font-mono">
+                      <span className={`w-2 h-2 rounded-full ${isFiring ? 'bg-purple-400 animate-pulse' : 'bg-emerald-400'}`} />
+                      <span className="text-white font-semibold">
+                        {isFiring ? 'Pipeline Ingesting…' : `Completed in ${activeLog?.processingMs}ms`}
+                      </span>
+                    </div>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-2.5">
                     {(activeLog?.steps ?? []).slice(0, visibleSteps).map((step) => (
                       <StepRow key={step.step} step={step} />
                     ))}
@@ -255,56 +260,58 @@ export const WebhookSandboxModal: React.FC<WebhookSandboxModalProps> = ({
                 </div>
               )}
 
-              {/* Success Summary Card */}
+              {/* Success Result Card */}
               {activeLog && !isFiring && (
-                <div className="bg-emerald-950/30 border border-emerald-500/25 rounded-xl p-4 space-y-3">
+                <div className="bg-emerald-950/30 border border-emerald-800/40 rounded-xl p-4 space-y-3 animate-in fade-in duration-200">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span className="text-xs font-bold text-emerald-300">Case Injected into Recovery Ledger</span>
+                    <span className="text-xs font-semibold text-emerald-300">
+                      Injected into Live Recovery Ledger
+                    </span>
                   </div>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-[11px]">
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-[11px]">
                     {[
-                      { label: 'Customer', value: activeLog.parsedCustomerName, cls: 'text-white font-semibold' },
-                      { label: 'Amount at Risk', value: `₹${activeLog.amountINR.toLocaleString('en-IN')}`, cls: 'text-emerald-400 font-bold' },
+                      { label: 'Customer', value: activeLog.parsedCustomerName, cls: 'text-white font-medium' },
+                      { label: 'Amount at Risk', value: `₹${activeLog.amountINR.toLocaleString('en-IN')}`, cls: 'text-emerald-400 font-semibold font-mono' },
                       { label: 'Risk Vector', value: activeLog.diagnosedVector, cls: 'text-white' },
-                      { label: 'Intervention', value: activeLog.interventionType, cls: 'text-blue-400' },
-                      { label: 'Event ID', value: activeLog.eventId, cls: 'text-slate-400 font-mono text-[10px]' },
-                      { label: 'HMAC Sig', value: activeLog.signatureValid ? '✓ Verified' : '✗ Invalid', cls: activeLog.signatureValid ? 'text-emerald-400' : 'text-red-400' },
+                      { label: 'Intervention', value: activeLog.interventionType, cls: 'text-blue-300 font-mono text-[10px]' },
+                      { label: 'Event ID', value: activeLog.eventId, cls: 'text-[#A1A1A1] font-mono text-[10px]' },
+                      { label: 'HMAC Sig', value: activeLog.signatureValid ? '✓ Verified' : '✗ Invalid', cls: activeLog.signatureValid ? 'text-emerald-400 font-mono' : 'text-red-400 font-mono' },
                     ].map(({ label, value, cls }) => (
                       <div key={label} className="space-y-0.5">
-                        <p className="text-[9px] uppercase tracking-wider text-slate-600">{label}</p>
+                        <p className="text-[9px] uppercase font-mono text-[#71717A]">{label}</p>
                         <p className={`truncate ${cls}`}>{value}</p>
                       </div>
                     ))}
                   </div>
-                  <div className="flex items-center gap-1.5 pt-1 border-t border-emerald-500/10">
-                    <Shield className="w-3 h-3 text-blue-400 shrink-0" />
-                    <span className="text-[10px] text-blue-300">RBI/DPDP Compliance Cleared · DND respected · Touchpoints within limits</span>
+                  <div className="flex items-center gap-1.5 pt-2 border-t border-emerald-800/20 text-[10px] text-emerald-300/80">
+                    <Shield className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                    <span>RBI & DPDP Guardrails Verified · DND Policy Active</span>
                   </div>
                 </div>
               )}
 
-              {/* Empty state */}
+              {/* Empty State */}
               {!isFiring && !activeLog && (
-                <div className="flex flex-col items-center justify-center h-48 space-y-3 text-slate-700">
-                  <div className="w-14 h-14 rounded-2xl bg-slate-800/60 border border-slate-700/40 flex items-center justify-center">
-                    <Radio className="w-6 h-6" />
+                <div className="flex flex-col items-center justify-center h-44 space-y-2 text-center text-[#52525B]">
+                  <div className="w-10 h-10 rounded-xl bg-[#111111] border border-[#222222] flex items-center justify-center text-[#71717A]">
+                    <Radio className="w-5 h-5" />
                   </div>
-                  <div className="text-center space-y-1">
-                    <p className="text-xs font-semibold text-slate-500">Sandbox Ready</p>
-                    <p className="text-[10px] text-slate-600 max-w-xs">Pick an event template, tweak the JSON payload,<br /> then click <span className="text-slate-400 font-semibold">Fire Webhook</span> to simulate ingestion.</p>
-                  </div>
+                  <p className="text-xs text-[#A1A1A1] font-medium">Sandbox Ready</p>
+                  <p className="text-[11px] text-[#71717A] max-w-xs">
+                    Select an event template, modify the payload if needed, then click <strong className="text-white">Fire Webhook Event</strong>.
+                  </p>
                 </div>
               )}
             </div>
 
-            {/* Ingestion History — fixed at bottom */}
+            {/* Ingestion History */}
             {logs.length > 0 && (
-              <div className="shrink-0 border-t border-slate-800 px-5 py-3">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                  Ingestion History <span className="text-slate-600">({logs.length})</span>
-                </p>
-                <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+              <div className="shrink-0 border-t border-[#1F1F1F] pt-3 space-y-2">
+                <div className="text-[10px] font-mono uppercase tracking-wider text-[#71717A]">
+                  Ingestion History ({logs.length})
+                </div>
+                <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
                   {logs.map((log) => (
                     <LogBadge key={log.id} log={log} />
                   ))}

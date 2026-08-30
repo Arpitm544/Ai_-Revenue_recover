@@ -1,24 +1,30 @@
 import React, { useState } from 'react';
-import { Search, PhoneCall, MessageSquare, FileText, CheckCircle2, AlertTriangle, ShieldAlert, ArrowUpRight, Clock, Plus, Handshake } from 'lucide-react';
+import { 
+  Search, PhoneCall, MessageSquare, FileText, CheckCircle2, AlertTriangle, 
+  ShieldAlert, ArrowUpRight, Clock, Plus, Handshake, X, User
+} from 'lucide-react';
 import type { RecoveryCase, LeakVector, CaseStatus } from './types';
 
 interface CasesTableProps {
   cases: RecoveryCase[];
+  selectedCaseId: string | null;
+  onSelectCase: (rcase: RecoveryCase) => void;
   onSelectVoiceCase: (rcase: RecoveryCase) => void;
   onSelectWhatsAppCase: (rcase: RecoveryCase) => void;
   onSelectAuditCase: (rcase: RecoveryCase) => void;
-  onInterveneSingle: (rcase: RecoveryCase) => void;
-  onOpenNewCaseModal: () => void;
   onSelectNegotiateCase: (rcase: RecoveryCase) => void;
+  onOpenNewCaseModal: () => void;
 }
 
 export const CasesTable: React.FC<CasesTableProps> = ({
   cases,
+  selectedCaseId,
+  onSelectCase,
   onSelectVoiceCase,
   onSelectWhatsAppCase,
   onSelectAuditCase,
-  onOpenNewCaseModal,
   onSelectNegotiateCase,
+  onOpenNewCaseModal,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [vectorFilter, setVectorFilter] = useState<string>('ALL');
@@ -67,19 +73,39 @@ export const CasesTable: React.FC<CasesTableProps> = ({
     }
   };
 
+  const clearFilters = () => {
+    setSearchTerm('');
+    setVectorFilter('ALL');
+    setStatusFilter('ALL');
+  };
+
+  const hasActiveFilters = searchTerm !== '' || vectorFilter !== 'ALL' || statusFilter !== 'ALL';
+
   return (
-    <div className="rounded-xl bg-[#0A0A0A] border border-[#1F1F1F] shadow-sm overflow-hidden space-y-3 p-4">
-      {/* Table Header Controls */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-3">
-        <div>
-          <h2 className="text-sm font-semibold text-[#EDEDED]">Recovery Cases</h2>
-          <p className="text-[11px] text-[#71717A]">Real-time detection, autonomous interventions & audit trail</p>
+    <div className="flex flex-col h-full overflow-hidden space-y-3">
+      {/* Top Header & Search Bar with Filter Pills (like user's screenshot) */}
+      <div className="space-y-3 shrink-0">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-white tracking-tight">Recovery Cases</h2>
+            <p className="text-xs text-[#71717A] mt-0.5">
+              Live transaction stream, autonomous AI diagnosis & recovery tracking
+            </p>
+          </div>
+
+          <button
+            onClick={onOpenNewCaseModal}
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-white hover:bg-neutral-200 text-black text-xs font-semibold rounded-lg transition-colors shadow-sm cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>New Case</span>
+          </button>
         </div>
 
-        {/* Search & Filters */}
-        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+        {/* Filter Toolbar matching user reference */}
+        <div className="flex flex-wrap items-center gap-2">
           {/* Search Input */}
-          <div className="relative flex-1 md:w-60">
+          <div className="relative w-64">
             <Search className="w-3.5 h-3.5 text-[#71717A] absolute left-2.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
@@ -90,7 +116,7 @@ export const CasesTable: React.FC<CasesTableProps> = ({
             />
           </div>
 
-          {/* Vector Filter */}
+          {/* Vector Filter Select */}
           <select
             value={vectorFilter}
             onChange={(e) => setVectorFilter(e.target.value)}
@@ -103,7 +129,7 @@ export const CasesTable: React.FC<CasesTableProps> = ({
             <option value="MANDATE_FAIL">UPI Mandates</option>
           </select>
 
-          {/* Status Filter */}
+          {/* Status Filter Select */}
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -115,20 +141,45 @@ export const CasesTable: React.FC<CasesTableProps> = ({
             <option value="STOPPED">Stopped (Compliant)</option>
           </select>
 
-          <button
-            onClick={onOpenNewCaseModal}
-            className="flex items-center space-x-1.5 px-3 py-1.5 bg-[#1A1A1A] hover:bg-[#262626] text-white text-xs font-medium rounded-lg border border-[#333333] transition-all cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>New Case</span>
-          </button>
+          {/* Active Filter Chips (like user screenshot) */}
+          {vectorFilter !== 'ALL' && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#181818] border border-[#2A2A2A] text-xs text-[#EDEDED]">
+              <span>Vector: {getVectorLabel(vectorFilter as LeakVector)}</span>
+              <button onClick={() => setVectorFilter('ALL')} className="text-[#71717A] hover:text-white cursor-pointer">
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          )}
+
+          {statusFilter !== 'ALL' && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#181818] border border-[#2A2A2A] text-xs text-[#EDEDED]">
+              <span>Status: {statusFilter}</span>
+              <button onClick={() => setStatusFilter('ALL')} className="text-[#71717A] hover:text-white cursor-pointer">
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          )}
+
+          {hasActiveFilters && (
+            <button
+              onClick={clearFilters}
+              className="text-xs text-[#71717A] hover:text-white flex items-center gap-1 px-2 py-1 transition-colors cursor-pointer"
+            >
+              <X className="w-3 h-3" />
+              <span>Clear</span>
+            </button>
+          )}
+
+          <div className="ml-auto text-xs text-[#71717A] font-mono">
+            {filteredCases.length} of {cases.length} cases
+          </div>
         </div>
       </div>
 
       {/* Table Data */}
-      <div className="overflow-x-auto rounded-lg border border-[#1F1F1F]">
+      <div className="flex-1 overflow-auto rounded-xl border border-[#1F1F1F] bg-[#0A0A0A]">
         <table className="w-full text-left text-xs text-[#D4D4D8]">
-          <thead className="bg-[#000000] text-[#71717A] font-medium uppercase text-[10px] tracking-wider border-b border-[#1F1F1F]">
+          <thead className="sticky top-0 z-10 bg-[#000000] text-[#71717A] font-medium uppercase text-[10px] tracking-wider border-b border-[#1F1F1F]">
             <tr>
               <th className="py-3 px-3.5">Customer & ID</th>
               <th className="py-3 px-3.5">Leak Vector</th>
@@ -136,108 +187,127 @@ export const CasesTable: React.FC<CasesTableProps> = ({
               <th className="py-3 px-3.5">Bank & Failure</th>
               <th className="py-3 px-3.5">Intervention</th>
               <th className="py-3 px-3.5">Status</th>
-              <th className="py-3 px-3.5 text-right">Actions</th>
+              <th className="py-3 px-3.5 text-right">Quick Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#181818] bg-[#0A0A0A]">
+          <tbody className="divide-y divide-[#181818]">
             {filteredCases.length === 0 ? (
               <tr>
-                <td colSpan={7} className="py-8 text-center text-[#71717A]">
-                  No recovery cases match the search criteria.
+                <td colSpan={7} className="py-12 text-center text-[#71717A]">
+                  No recovery cases match the current filter criteria.
                 </td>
               </tr>
             ) : (
-              filteredCases.map((rcase) => (
-                <tr key={rcase.id} className="hover:bg-[#111111] transition-colors">
-                  {/* Customer Info */}
-                  <td className="py-3 px-3.5">
-                    <div className="font-medium text-[#EDEDED]">{rcase.customerName}</div>
-                    <div className="text-[10px] text-[#71717A] font-mono mt-0.5">{rcase.paymentId} · {rcase.customerPhone}</div>
-                  </td>
-
-                  {/* Leak Vector */}
-                  <td className="py-3 px-3.5">
-                    <span className="px-2 py-0.5 rounded bg-[#141414] text-[#A1A1A1] text-[11px] font-mono border border-[#222222]">
-                      {getVectorLabel(rcase.leakVector)}
-                    </span>
-                  </td>
-
-                  {/* Amount at Risk */}
-                  <td className="py-3 px-3.5">
-                    <div className="font-medium text-[#EDEDED]">
-                      ₹{rcase.amountAtRisk.toLocaleString('en-IN')}
-                    </div>
-                    {rcase.totalAmountRecovered > 0 && (
-                      <div className="text-[10px] text-emerald-400 font-mono">
-                        +₹{rcase.totalAmountRecovered.toLocaleString('en-IN')} recovered
+              filteredCases.map((rcase) => {
+                const isSelected = selectedCaseId === rcase.id;
+                return (
+                  <tr 
+                    key={rcase.id} 
+                    onClick={() => onSelectCase(rcase)}
+                    className={`transition-colors cursor-pointer ${
+                      isSelected 
+                        ? 'bg-[#181818] border-l-2 border-white' 
+                        : 'hover:bg-[#111111]'
+                    }`}
+                  >
+                    {/* Customer Info with Avatar */}
+                    <td className="py-3 px-3.5">
+                      <div className="flex items-center space-x-2.5">
+                        <div className="w-7 h-7 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-white shrink-0">
+                          <User className="w-3.5 h-3.5 text-neutral-300" />
+                        </div>
+                        <div>
+                          <div className="font-medium text-[#EDEDED] flex items-center gap-1.5">
+                            <span>{rcase.customerName}</span>
+                            {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />}
+                          </div>
+                          <div className="text-[10px] text-[#71717A] font-mono mt-0.5">
+                            {rcase.paymentId} · {rcase.customerPhone}
+                          </div>
+                        </div>
                       </div>
-                    )}
-                  </td>
+                    </td>
 
-                  {/* Bank & Failure Cause */}
-                  <td className="py-3 px-3.5">
-                    <div className="text-[#D4D4D8] font-medium">{rcase.issuingBank}</div>
-                    <div className="text-[10px] text-[#71717A] truncate max-w-[150px]" title={rcase.failureReason}>
-                      {rcase.failureReason}
-                    </div>
-                  </td>
+                    {/* Leak Vector */}
+                    <td className="py-3 px-3.5">
+                      <span className="px-2 py-0.5 rounded bg-[#141414] text-[#A1A1A1] text-[11px] font-mono border border-[#222222]">
+                        {getVectorLabel(rcase.leakVector)}
+                      </span>
+                    </td>
 
-                  {/* Recommended Channel */}
-                  <td className="py-3 px-3.5">
-                    <span className="text-[10px] font-mono text-[#A1A1A1] bg-[#141414] px-2 py-0.5 rounded border border-[#222222]">
-                      {rcase.recommendedChannel.replace(/_/g, ' ')}
-                    </span>
-                  </td>
-
-                  {/* Status Badge */}
-                  <td className="py-3 px-3.5">
-                    {getStatusBadge(rcase.status)}
-                  </td>
-
-                  {/* Action Buttons */}
-                  <td className="py-3 px-3.5 text-right">
-                    <div className="flex items-center justify-end space-x-1">
-                      {/* B2B Negotiate Button */}
-                      {rcase.leakVector === 'B2B_INVOICE' && rcase.amountAtRisk >= 45000 && (
-                        <button
-                          onClick={() => onSelectNegotiateCase(rcase)}
-                          className="p-1.5 bg-[#141414] hover:bg-[#222222] text-purple-400 hover:text-purple-300 rounded border border-[#262626] hover:border-[#3A3A3A] transition-all cursor-pointer"
-                          title="Open B2B Milestone Settlement Negotiator"
-                        >
-                          <Handshake className="w-3.5 h-3.5" />
-                        </button>
+                    {/* Amount at Risk */}
+                    <td className="py-3 px-3.5">
+                      <div className="font-medium text-[#EDEDED]">
+                        ₹{rcase.amountAtRisk.toLocaleString('en-IN')}
+                      </div>
+                      {rcase.totalAmountRecovered > 0 && (
+                        <div className="text-[10px] text-emerald-400 font-mono">
+                          +₹{rcase.totalAmountRecovered.toLocaleString('en-IN')} recovered
+                        </div>
                       )}
+                    </td>
 
-                      {/* Hinglish Voice Call Button */}
-                      <button
-                        onClick={() => onSelectVoiceCase(rcase)}
-                        className="p-1.5 bg-[#141414] hover:bg-[#222222] text-[#A1A1A1] hover:text-white rounded border border-[#262626] hover:border-[#3A3A3A] transition-all cursor-pointer"
-                        title="Launch Hinglish Voice Agent Call Simulator"
-                      >
-                        <PhoneCall className="w-3.5 h-3.5" />
-                      </button>
+                    {/* Bank & Failure Cause */}
+                    <td className="py-3 px-3.5">
+                      <div className="text-[#D4D4D8] font-medium">{rcase.issuingBank}</div>
+                      <div className="text-[10px] text-[#71717A] truncate max-w-[150px]" title={rcase.failureReason}>
+                        {rcase.failureReason}
+                      </div>
+                    </td>
 
-                      {/* WhatsApp 1-Tap Link Button */}
-                      <button
-                        onClick={() => onSelectWhatsAppCase(rcase)}
-                        className="p-1.5 bg-[#141414] hover:bg-[#222222] text-emerald-400 hover:text-emerald-300 rounded border border-[#262626] hover:border-[#3A3A3A] transition-all cursor-pointer"
-                        title="Preview WhatsApp 1-Tap UPI Payment Nudge"
-                      >
-                        <MessageSquare className="w-3.5 h-3.5" />
-                      </button>
+                    {/* Recommended Channel */}
+                    <td className="py-3 px-3.5">
+                      <span className="text-[10px] font-mono text-[#A1A1A1] bg-[#141414] px-2 py-0.5 rounded border border-[#222222]">
+                        {rcase.recommendedChannel.replace(/_/g, ' ')}
+                      </span>
+                    </td>
 
-                      {/* Audit Log Button */}
-                      <button
-                        onClick={() => onSelectAuditCase(rcase)}
-                        className="p-1.5 bg-[#141414] hover:bg-[#222222] text-[#71717A] hover:text-white rounded border border-[#262626] hover:border-[#3A3A3A] transition-all cursor-pointer"
-                        title="View Immutable Audit Trail"
-                      >
-                        <FileText className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
+                    {/* Status Badge */}
+                    <td className="py-3 px-3.5">
+                      {getStatusBadge(rcase.status)}
+                    </td>
+
+                    {/* Quick Action Buttons */}
+                    <td className="py-3 px-3.5 text-right" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center justify-end space-x-1">
+                        {rcase.leakVector === 'B2B_INVOICE' && rcase.amountAtRisk >= 45000 && (
+                          <button
+                            onClick={() => onSelectNegotiateCase(rcase)}
+                            className="p-1.5 bg-[#141414] hover:bg-[#222222] text-purple-400 hover:text-purple-300 rounded border border-[#262626] hover:border-[#3A3A3A] transition-all cursor-pointer"
+                            title="Open B2B Milestone Settlement Negotiator"
+                          >
+                            <Handshake className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+
+                        <button
+                          onClick={() => onSelectVoiceCase(rcase)}
+                          className="p-1.5 bg-[#141414] hover:bg-[#222222] text-[#A1A1A1] hover:text-white rounded border border-[#262626] hover:border-[#3A3A3A] transition-all cursor-pointer"
+                          title="Launch Hinglish Voice Agent Call Simulator"
+                        >
+                          <PhoneCall className="w-3.5 h-3.5" />
+                        </button>
+
+                        <button
+                          onClick={() => onSelectWhatsAppCase(rcase)}
+                          className="p-1.5 bg-[#141414] hover:bg-[#222222] text-emerald-400 hover:text-emerald-300 rounded border border-[#262626] hover:border-[#3A3A3A] transition-all cursor-pointer"
+                          title="Preview WhatsApp 1-Tap UPI Payment Nudge"
+                        >
+                          <MessageSquare className="w-3.5 h-3.5" />
+                        </button>
+
+                        <button
+                          onClick={() => onSelectAuditCase(rcase)}
+                          className="p-1.5 bg-[#141414] hover:bg-[#222222] text-[#71717A] hover:text-white rounded border border-[#262626] hover:border-[#3A3A3A] transition-all cursor-pointer"
+                          title="View Immutable Audit Trail"
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

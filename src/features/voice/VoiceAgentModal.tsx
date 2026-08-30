@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { PhoneCall, PhoneOff, Mic, MicOff, Volume2, Sparkles, Send, Check, Bot, User } from 'lucide-react';
 import type { RecoveryCase } from '../recovery/types';
-import { RevenueRecoveryAgent, type SpeechTurnResponse } from '../recovery/RecoveryAgent';
+import { RevenueRecoveryAgent } from '../recovery/RecoveryAgent';
 
 interface VoiceAgentModalProps {
   isOpen: boolean;
@@ -59,22 +59,18 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({
       recognition.interimResults = false;
       recognition.lang = 'hi-IN'; // Hinglish / Hindi & English supported
 
-      recognition.onstart = () => {
-        setIsListening(true);
-      };
-
       recognition.onresult = (event: any) => {
-        const transcriptText = event.results[0][0].transcript;
-        if (transcriptText) {
-          handleCustomerUtterance(transcriptText);
+        const transcript = event.results[0][0].transcript;
+        if (transcript) {
+          handleCustomerUtterance(transcript);
         }
       };
 
-      recognition.onerror = () => {
+      recognition.onend = () => {
         setIsListening(false);
       };
 
-      recognition.onend = () => {
+      recognition.onerror = () => {
         setIsListening(false);
       };
 
@@ -84,158 +80,166 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({
 
   if (!isOpen || !currentCase) return null;
 
+  // Text-to-Speech synthesis in Hinglish
+  const speakHinglish = (text: string, onEndCallback?: () => void) => {
+    if (!('speechSynthesis' in window)) {
+      if (onEndCallback) onEndCallback();
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = speechRate;
+    utterance.pitch = 1.0;
+    utterance.lang = 'hi-IN';
+
+    const voices = window.speechSynthesis.getVoices();
+    const hindiVoice = voices.find(v => v.lang.includes('hi') || v.lang.includes('IN'));
+    if (hindiVoice) utterance.voice = hindiVoice;
+
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => {
+      setIsSpeaking(false);
+      if (onEndCallback) onEndCallback();
+    };
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+      if (onEndCallback) onEndCallback();
+    };
+
+    window.speechSynthesis.speak(utterance);
+  };
+
   const handleStartCall = () => {
     setCallState('CALLING');
     setTimeout(() => {
       setCallState('CONNECTED');
-      const script = recoveryAgent.generateHinglishVoiceScript(currentCase);
-      const initialMsg: Message = {
-        sender: 'AGENT',
-        text: script.text,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-      setMessages([initialMsg]);
-      speakVoice(script.text);
-    }, 1500);
-  };
-
-  const speakVoice = (text: string, onEndCallback?: () => void) => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = speechRate;
-      utterance.pitch = 1.0;
+      // Opening speech turn by AI Agent
+      const response = recoveryAgent.processConversationalSpeech(currentCase, "");
       
-      // Select natural Indian or Hindi voice if available
-      const voices = window.speechSynthesis.getVoices();
-      const indianVoice = voices.find(v => v.lang.includes('hi') || v.lang.includes('IN') || v.name.includes('India'));
-      if (indianVoice) utterance.voice = indianVoice;
-
-      utterance.onstart = () => setIsSpeaking(true);
-      utterance.onend = () => {
-        setIsSpeaking(false);
-        if (onEndCallback) onEndCallback();
+      const agentMsg: Message = {
+        sender: 'AGENT',
+        text: response.replyText,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        intentTag: response.detectedIntent
       };
-      utterance.onerror = () => setIsSpeaking(false);
-
-      window.speechSynthesis.speak(utterance);
-    }
+      setMessages([agentMsg]);
+      speakHinglish(response.replyText);
+    }, 1200);
   };
 
-  const toggleListening = () => {
-    if (isListening) {
-      recognitionRef.current?.stop();
-      setIsListening(false);
-    } else {
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        setIsSpeaking(false);
-      }
-      try {
-        recognitionRef.current?.start();
-      } catch (e) {
-        setIsListening(false);
-      }
-    }
-  };
+  const handleCustomerUtterance = (text: string) => {
+    if (!text.trim() || !currentCase) return;
 
-  const handleCustomerUtterance = (spokenText: string) => {
-    if (!spokenText.trim() || !currentCase) return;
-
-    // Add Customer Message to chat
-    const customerMsg: Message = {
+    const userMsg: Message = {
       sender: 'CUSTOMER',
-      text: spokenText,
+      text,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
-    setMessages(prev => [...prev, customerMsg]);
+    setMessages((prev) => [...prev, userMsg]);
     setInputSpeech('');
 
-    // Process through AI Conversational Intent Engine
-    const result: SpeechTurnResponse = recoveryAgent.processConversationalSpeech(currentCase, spokenText);
-    setCurrentCase(result.updatedCase);
-    onUpdateCase(result.updatedCase);
+    // Process turn with Recovery Agent
+    setTimeout(() => {
+      const response = recoveryAgent.processConversationalSpeech(currentCase, text);
 
-    if (result.actionTaken) {
-      setActionAlert(result.actionTaken);
+      const agentMsg: Message = {
+        sender: 'AGENT',
+        text: response.replyText,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        intentTag: response.detectedIntent
+      };
+
+      setMessages((prev) => [...prev, agentMsg]);
+
+      // Apply case state transitions
+      if (response.updatedCase) {
+        setCurrentCase(response.updatedCase);
+        onUpdateCase(response.updatedCase);
+      }
+
+      if (response.actionTaken) {
+        setActionAlert(response.actionTaken);
+      }
+
+      speakHinglish(response.replyText);
+    }, 600);
+  };
+
+  const toggleListening = () => {
+    if (!recognitionRef.current) {
+      alert("Speech recognition is not supported in this browser. You can still type below!");
+      return;
     }
 
-    // Agent Responds
-    setTimeout(() => {
-      const agentReplyMsg: Message = {
-        sender: 'AGENT',
-        text: result.replyText,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        intentTag: result.detectedIntent
-      };
-      setMessages(prev => [...prev, agentReplyMsg]);
-      speakVoice(result.replyText);
-    }, 400);
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      try {
+        recognitionRef.current.start();
+        setIsListening(true);
+      } catch (err) {
+        console.error(err);
+      }
+    }
   };
 
   const handleEndCall = () => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-    }
-    setIsSpeaking(false);
+    window.speechSynthesis?.cancel();
+    if (recognitionRef.current) recognitionRef.current.stop();
     setIsListening(false);
+    setIsSpeaking(false);
     setCallState('ENDED');
   };
 
   const samplePrompts = [
-    { label: "📅 Promise to Pay (5th)", text: "Main salary aane ke baad 5 tareekh ko pay karunga." },
-    { label: "⚡ Pay Now via UPI", text: "Haan abhi mere WhatsApp pe 1-tap UPI link bhej do." },
-    { label: "❓ Query Amount", text: "Mera kitna amount pending hai aur kyu fail hua tha?" },
-    { label: "🛑 Dispute / Cancel", text: "Nahi mujhe ye charge nahi chahiye, subscription cancel karo." }
+    { label: "Pay on 5th (P2P)", text: "Main 5 tareekh ko salary aane par pay kar dunga." },
+    { label: "Wrong Charge (Dispute)", text: "Maine yeh service cancel kar di thi, main pay nahi karunga!" },
+    { label: "Send Link Now (WhatsApp)", text: "Haan please mujhe WhatsApp par Razorpay payment link bhej do." },
+    { label: "Card Expired", text: "Mera credit card expire ho gaya hai, naya card add karna hai." }
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-      <div className="relative w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Visual Call Header */}
-        <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-150">
+      <div className="relative w-full max-w-2xl bg-[#0A0A0A] border border-[#1F1F1F] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[88vh]">
+        {/* Header */}
+        <div className="px-6 py-3.5 border-b border-[#1F1F1F] bg-[#000000] flex items-center justify-between shrink-0">
           <div className="flex items-center space-x-3">
-            <div className="relative">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-blue-500 flex items-center justify-center shadow-lg shadow-indigo-500/25">
-                {callState === 'CONNECTED' ? (
-                  <Volume2 className={`w-6 h-6 text-white ${isSpeaking ? 'animate-bounce' : ''}`} />
-                ) : (
-                  <PhoneCall className="w-6 h-6 text-white" />
-                )}
-              </div>
-              {callState === 'CONNECTED' && (
-                <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-slate-900 rounded-full" />
-              )}
+            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+              <PhoneCall className="w-4 h-4" />
             </div>
-
             <div>
               <div className="flex items-center space-x-2">
-                <h3 className="text-base font-bold text-white">{currentCase.customerName}</h3>
-                <span className="px-2 py-0.5 text-[10px] font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-full">
-                  Hinglish AI Voice
+                <h3 className="text-sm font-semibold text-white tracking-tight">Hinglish Voice AI Agent Simulator</h3>
+                <span className={`px-2 py-0.5 text-[10px] font-mono rounded ${
+                  callState === 'CONNECTED' 
+                    ? 'bg-emerald-950/50 text-emerald-400 border border-emerald-800/40' 
+                    : callState === 'CALLING' 
+                    ? 'bg-amber-950/50 text-amber-300 border border-amber-800/40 animate-pulse'
+                    : 'bg-[#181818] text-[#A1A1A1] border border-[#27272A]'
+                }`}>
+                  {callState === 'CONNECTED' ? 'Live Call' : callState === 'CALLING' ? 'Dialing...' : callState}
                 </span>
               </div>
-              <p className="text-xs text-slate-400">
-                {currentCase.customerPhone} • ₹{currentCase.amountAtRisk.toLocaleString('en-IN')} ({currentCase.leakVector})
+              <p className="text-[11px] text-[#71717A] mt-0.5 font-mono">
+                {currentCase.customerName} ({currentCase.customerPhone}) · ₹{currentCase.amountAtRisk.toLocaleString('en-IN')}
               </p>
             </div>
           </div>
 
           <div className="flex items-center space-x-2">
-            {/* Speed Toggle */}
-            <div className="flex items-center space-x-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-[10px]">
+            {/* Speed Selector */}
+            <div className="flex items-center space-x-1 bg-[#111111] p-1 rounded-lg border border-[#222222] text-[10px] font-mono">
               {[0.8, 1.0, 1.2].map((rate) => (
                 <button
                   key={rate}
                   onClick={() => setSpeechRate(rate)}
-                  className={`px-2 py-0.5 rounded-lg font-medium transition-all cursor-pointer ${
+                  className={`px-1.5 py-0.5 rounded font-medium transition-colors cursor-pointer ${
                     speechRate === rate
-                      ? 'bg-indigo-600 text-white shadow-sm'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-white text-black font-semibold'
+                      : 'text-[#71717A] hover:text-white'
                   }`}
                   title={`Set Voice Speed to ${rate}x`}
                 >
@@ -247,7 +251,7 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({
             {callState === 'CONNECTED' ? (
               <button
                 onClick={handleEndCall}
-                className="px-3.5 py-1.5 bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-all cursor-pointer"
+                className="px-3 py-1.5 bg-red-950/50 hover:bg-red-900/60 text-red-300 border border-red-800/40 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-colors cursor-pointer"
               >
                 <PhoneOff className="w-3.5 h-3.5" />
                 <span>End Call</span>
@@ -255,7 +259,7 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({
             ) : (
               <button
                 onClick={onClose}
-                className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-medium border border-slate-700 transition-all cursor-pointer"
+                className="px-3 py-1.5 bg-[#181818] hover:bg-[#222222] text-white rounded-lg text-xs font-medium border border-[#2A2A2A] transition-colors cursor-pointer"
               >
                 Close
               </button>
@@ -265,33 +269,33 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({
 
         {/* Live Audio Status & Dynamic Action Banner */}
         {actionAlert && (
-          <div className="px-6 py-2 bg-emerald-950/60 border-b border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center justify-between">
+          <div className="px-6 py-2 bg-emerald-950/30 border-b border-emerald-800/40 text-emerald-300 text-xs font-mono flex items-center justify-between shrink-0">
             <span className="flex items-center space-x-1.5">
               <Check className="w-3.5 h-3.5 text-emerald-400" />
               <span>{actionAlert}</span>
             </span>
-            <span className="text-[10px] uppercase tracking-wider text-emerald-400/80 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+            <span className="text-[10px] text-emerald-400/80 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
               State: {currentCase.status}
             </span>
           </div>
         )}
 
         {/* Call Body */}
-        <div className="flex-1 p-6 bg-slate-950 overflow-y-auto space-y-4 min-h-[320px] max-h-[460px]">
+        <div className="flex-1 p-6 bg-[#050505] overflow-y-auto space-y-4 min-h-[300px] max-h-[440px]">
           {callState === 'IDLE' && (
             <div className="text-center py-10 space-y-4">
-              <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-400">
-                <PhoneCall className="w-8 h-8" />
+              <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mx-auto text-indigo-400">
+                <PhoneCall className="w-7 h-7" />
               </div>
               <div className="space-y-1">
-                <h4 className="text-base font-bold text-white">Initiate Live Speech-to-Speech Call</h4>
-                <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                  Experience multi-turn conversational AI in Hinglish with real-time speech synthesis & microphone recognition.
+                <h4 className="text-sm font-semibold text-white">Initiate Live Speech-to-Speech Call</h4>
+                <p className="text-xs text-[#71717A] max-w-sm mx-auto">
+                  Multi-turn conversational AI in Hinglish with real-time speech synthesis & microphone capture.
                 </p>
               </div>
               <button
                 onClick={handleStartCall}
-                className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-emerald-600/30 transition-all cursor-pointer"
+                className="px-5 py-2.5 bg-white hover:bg-neutral-200 text-black font-semibold text-xs rounded-xl shadow-sm transition-colors cursor-pointer"
               >
                 Start Live Hinglish Voice Call
               </button>
@@ -300,37 +304,37 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({
 
           {callState === 'CALLING' && (
             <div className="text-center py-14 space-y-3">
-              <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto" />
-              <p className="text-sm font-semibold text-indigo-300">Dialing customer line in Mumbai...</p>
-              <p className="text-xs text-slate-500">Checking RBI TRAI DND Guardrails...</p>
+              <div className="w-10 h-10 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin mx-auto" />
+              <p className="text-xs font-semibold text-white">Dialing customer line in Mumbai...</p>
+              <p className="text-[11px] text-[#71717A] font-mono">Checking RBI TRAI DND Guardrails...</p>
             </div>
           )}
 
           {(callState === 'CONNECTED' || callState === 'ENDED') && (
-            <div className="space-y-3.5">
+            <div className="space-y-3">
               {messages.map((msg, idx) => (
                 <div
                   key={idx}
                   className={`flex items-start space-x-2.5 ${msg.sender === 'CUSTOMER' ? 'flex-row-reverse space-x-reverse' : ''}`}
                 >
-                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
-                    msg.sender === 'AGENT' ? 'bg-indigo-600/20 border border-indigo-500/30 text-indigo-400' : 'bg-emerald-600/20 border border-emerald-500/30 text-emerald-400'
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                    msg.sender === 'AGENT' ? 'bg-[#181818] border border-[#2A2A2A] text-indigo-400' : 'bg-[#181818] border border-[#2A2A2A] text-emerald-400'
                   }`}>
-                    {msg.sender === 'AGENT' ? <Bot className="w-4 h-4" /> : <User className="w-4 h-4" />}
+                    {msg.sender === 'AGENT' ? <Bot className="w-3.5 h-3.5" /> : <User className="w-3.5 h-3.5" />}
                   </div>
 
-                  <div className={`max-w-[80%] rounded-2xl p-3.5 text-xs leading-relaxed space-y-1.5 shadow-md ${
-                    msg.sender === 'AGENT' ? 'bg-slate-900 border border-slate-800 text-slate-200 rounded-tl-none' : 'bg-indigo-950/60 border border-indigo-500/30 text-white rounded-tr-none'
+                  <div className={`max-w-[80%] rounded-xl p-3 text-xs leading-relaxed space-y-1.5 ${
+                    msg.sender === 'AGENT' ? 'bg-[#111111] border border-[#1F1F1F] text-[#EDEDED]' : 'bg-[#181818] border border-[#2A2A2A] text-white'
                   }`}>
-                    <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
+                    <div className="flex items-center justify-between text-[10px] text-[#71717A] font-mono">
                       <span>{msg.sender === 'AGENT' ? 'Razorpay Voice AI' : 'Customer (You)'}</span>
                       <span>{msg.timestamp}</span>
                     </div>
 
-                    <p className="font-sans text-[13px]">{msg.text}</p>
+                    <p className="text-xs leading-relaxed">{msg.text}</p>
 
                     {msg.intentTag && (
-                      <span className="inline-block px-2 py-0.5 text-[10px] font-semibold rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
+                      <span className="inline-block px-1.5 py-0.5 text-[9px] font-mono rounded bg-[#161616] text-[#A1A1A1] border border-[#2A2A2A]">
                         Intent: {msg.intentTag}
                       </span>
                     )}
@@ -340,21 +344,16 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({
 
               {/* Dynamic Waveform Visualizer */}
               {isSpeaking && (
-                <div className="flex items-center space-x-1.5 py-2 px-3 rounded-xl bg-indigo-950/40 border border-indigo-500/20 w-fit">
-                  <Volume2 className="w-3.5 h-3.5 text-indigo-400 animate-pulse" />
-                  <span className="text-[11px] text-indigo-300 font-medium">Agent Speaking...</span>
-                  <div className="flex space-x-1 items-center h-3">
-                    <span className="w-1 h-2 bg-indigo-400 animate-bounce" />
-                    <span className="w-1 h-3.5 bg-indigo-400 animate-bounce [animation-delay:0.15s]" />
-                    <span className="w-1 h-2 bg-indigo-400 animate-bounce [animation-delay:0.3s]" />
-                  </div>
+                <div className="flex items-center space-x-1.5 py-1.5 px-2.5 rounded-lg bg-[#111111] border border-[#222222] w-fit">
+                  <Volume2 className="w-3 h-3 text-indigo-400 animate-pulse" />
+                  <span className="text-[10px] text-[#A1A1A1] font-mono">Agent Speaking...</span>
                 </div>
               )}
 
               {isListening && (
-                <div className="flex items-center space-x-1.5 py-2 px-3 rounded-xl bg-emerald-950/40 border border-emerald-500/20 w-fit">
-                  <Mic className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-                  <span className="text-[11px] text-emerald-300 font-medium">Listening to your voice... Speak now!</span>
+                <div className="flex items-center space-x-1.5 py-1.5 px-2.5 rounded-lg bg-emerald-950/30 border border-emerald-800/40 w-fit">
+                  <Mic className="w-3 h-3 text-emerald-400 animate-pulse" />
+                  <span className="text-[10px] text-emerald-300 font-mono">Listening to voice... Speak now</span>
                 </div>
               )}
 
@@ -363,21 +362,21 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({
           )}
         </div>
 
-        {/* Live Mic & Quick Utterance Controls (When Connected) */}
+        {/* Live Mic & Quick Utterance Controls */}
         {callState === 'CONNECTED' && (
-          <div className="p-4 bg-slate-900 border-t border-slate-800 space-y-3">
+          <div className="p-4 bg-[#000000] border-t border-[#1F1F1F] space-y-3 shrink-0">
             {/* Quick Test Speech Chips */}
             <div>
-              <span className="text-[11px] font-semibold text-slate-400 block mb-1.5 flex items-center space-x-1">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-[#71717A] block mb-1.5 flex items-center space-x-1">
                 <Sparkles className="w-3 h-3 text-indigo-400" />
-                <span>Or Click Quick Voice Test Prompts:</span>
+                <span>Quick Utterance Simulator</span>
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {samplePrompts.map((p, idx) => (
                   <button
                     key={idx}
                     onClick={() => handleCustomerUtterance(p.text)}
-                    className="px-2.5 py-1 text-[11px] font-medium bg-slate-950 hover:bg-indigo-900/30 text-slate-300 hover:text-white rounded-lg border border-slate-800 hover:border-indigo-500/40 transition-all cursor-pointer"
+                    className="px-2 py-1 text-[10px] font-mono bg-[#111111] hover:bg-[#181818] text-[#A1A1A1] hover:text-white rounded border border-[#222222] hover:border-[#333333] transition-colors cursor-pointer"
                   >
                     {p.label}
                   </button>
@@ -389,10 +388,10 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({
             <div className="flex items-center space-x-2">
               <button
                 onClick={toggleListening}
-                className={`p-3 rounded-xl border flex items-center justify-center transition-all cursor-pointer ${
+                className={`p-2.5 rounded-lg border flex items-center justify-center transition-colors cursor-pointer ${
                   isListening
-                    ? 'bg-rose-600 text-white border-rose-500 animate-pulse shadow-lg shadow-rose-600/30'
-                    : 'bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border-emerald-500/40'
+                    ? 'bg-red-950/50 text-red-300 border-red-800/50 animate-pulse'
+                    : 'bg-[#181818] hover:bg-[#222222] text-[#EDEDED] border-[#2A2A2A]'
                 }`}
                 title={isListening ? "Stop Microphone" : "Speak into Microphone"}
               >
@@ -408,11 +407,11 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') handleCustomerUtterance(inputSpeech);
                   }}
-                  className="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-xl pl-3 pr-9 py-2.5 focus:border-indigo-500 focus:outline-none"
+                  className="w-full bg-[#111111] border border-[#222222] text-white text-xs rounded-lg pl-3 pr-9 py-2 focus:border-[#444444] focus:outline-none"
                 />
                 <button
                   onClick={() => handleCustomerUtterance(inputSpeech)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-indigo-400 transition-all cursor-pointer"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-[#71717A] hover:text-white transition-colors cursor-pointer"
                 >
                   <Send className="w-3.5 h-3.5" />
                 </button>

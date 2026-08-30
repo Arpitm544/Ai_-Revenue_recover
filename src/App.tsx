@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react';
-import { Navbar } from './shared/Navbar';
+import { useState } from 'react';
+import { Sidebar } from './shared/Sidebar';
 import { ExecutiveDashboard } from './features/recovery/ExecutiveDashboard';
 import { CasesTable } from './features/recovery/CasesTable';
+import { CaseDetailDrawer } from './features/recovery/CaseDetailDrawer';
 import { BatchSimulator } from './features/recovery/BatchSimulator';
 import { VoiceAgentModal } from './features/voice/VoiceAgentModal';
 import { WhatsAppPreviewModal } from './features/whatsapp/WhatsAppPreviewModal';
@@ -12,25 +13,25 @@ import { BankHealthModal } from './features/bank-health/BankHealthModal';
 import { WebhookSandboxModal } from './features/webhooks/WebhookSandboxModal';
 import { B2BNegotiatorModal } from './features/b2b-negotiator/B2BNegotiatorModal';
 
-import { INITIAL_MOCK_CASES, generateMockBatchCases } from './features/recovery/MockData';
+import { INITIAL_MOCK_CASES } from './features/recovery/MockData';
 import { ComplianceEngine } from './features/recovery/ComplianceEngine';
 import { RevenueRecoveryAgent } from './features/recovery/RecoveryAgent';
 import { BankHealthService } from './features/bank-health/BankHealthService';
 import { WebhookService } from './features/webhooks/WebhookService';
 import type { RecoveryCase } from './features/recovery/types';
+import { ChevronRight, Play, Activity, Download } from 'lucide-react';
 
-export function App() {
-  const complianceEngine = useMemo(() => new ComplianceEngine(), []);
-  const recoveryAgent = useMemo(() => new RevenueRecoveryAgent(complianceEngine), [complianceEngine]);
-  const bankHealthService = useMemo(() => new BankHealthService(), []);
-  const webhookService = useMemo(() => new WebhookService(), []);
+const complianceEngine = new ComplianceEngine();
+const recoveryAgent = new RevenueRecoveryAgent(complianceEngine);
+const bankHealthService = new BankHealthService();
+const webhookService = new WebhookService();
 
-  const [cases, setCases] = useState<RecoveryCase[]>(() => [
-    ...INITIAL_MOCK_CASES,
-    ...generateMockBatchCases(45)
-  ]);
+export default function App() {
+  const [cases, setCases] = useState<RecoveryCase[]>(INITIAL_MOCK_CASES);
+  const [activeView, setActiveView] = useState<'cases' | 'analytics'>('cases');
+  const [selectedDrawerCase, setSelectedDrawerCase] = useState<RecoveryCase | null>(null);
 
-  // Modal States
+  // Modal Dialogs State
   const [isBatchOpen, setIsBatchOpen] = useState(false);
   const [isComplianceOpen, setIsComplianceOpen] = useState(false);
   const [isNewCaseOpen, setIsNewCaseOpen] = useState(false);
@@ -48,17 +49,25 @@ export function App() {
   // Single Case Update Handler
   const handleUpdateCase = (updated: RecoveryCase) => {
     setCases(prev => prev.map(c => c.id === updated.id ? updated : c));
+    if (selectedDrawerCase?.id === updated.id) {
+      setSelectedDrawerCase(updated);
+    }
   };
 
   // Batch Update Handler
   const handleUpdateBatchCases = (updatedList: RecoveryCase[]) => {
     setCases(updatedList);
+    if (selectedDrawerCase) {
+      const refreshed = updatedList.find(c => c.id === selectedDrawerCase.id);
+      if (refreshed) setSelectedDrawerCase(refreshed);
+    }
   };
 
   // Add New Case Handler
   const handleAddCase = (newCase: RecoveryCase) => {
     const diagnosed = recoveryAgent.diagnoseCase(newCase);
     setCases(prev => [diagnosed, ...prev]);
+    setSelectedDrawerCase(diagnosed);
   };
 
   // Single Case Intervene Execution
@@ -68,10 +77,46 @@ export function App() {
     handleUpdateCase(updatedCase);
   };
 
+  // Export Audit Report
+  const handleExportReport = () => {
+    const totalRisk = cases.reduce((a, b) => a + b.amountAtRisk, 0);
+    const totalRecovered = cases.reduce((a, b) => a + b.totalAmountRecovered, 0);
+    const recoveryRate = totalRisk > 0 ? (totalRecovered / totalRisk) * 100 : 0;
+
+    const reportData = {
+      reportTitle: "Razorpay RevGuard AI - Revenue Recovery & Compliance Audit Ledger",
+      generatedAt: new Date().toISOString(),
+      track: "Track 03 · AI Revenue Recovery",
+      merchant: "Razorpay Verified Merchant",
+      executiveSummary: {
+        totalCases: cases.length,
+        totalAmountAtRiskINR: totalRisk,
+        totalAmountRecoveredINR: totalRecovered,
+        recoveryRatePercent: Number(recoveryRate.toFixed(2)),
+        compliantStopsCount: cases.filter(c => c.status === 'STOPPED_COMPLIANT').length,
+        activeInterventionsCount: cases.filter(c => c.status === 'INTERVENING' || c.status === 'PROMISED_TO_PAY').length
+      },
+      complianceSettings: complianceEngine.getSettings(),
+      casesLedger: cases
+    };
+
+    const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Razorpay_RevGuard_Audit_Report_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
-    <div className="min-h-screen bg-black text-[#EDEDED] font-sans selection:bg-white selection:text-black flex flex-col">
-      {/* Top Navbar */}
-      <Navbar
+    <div className="h-screen w-screen bg-black text-[#EDEDED] font-sans flex overflow-hidden select-none">
+      {/* Column 1: Left Navigation Sidebar */}
+      <Sidebar
+        activeView={activeView}
+        onSelectView={(v) => setActiveView(v)}
         onOpenBatchSimulator={() => setIsBatchOpen(true)}
         onOpenComplianceConfig={() => setIsComplianceOpen(true)}
         onOpenNewCase={() => setIsNewCaseOpen(true)}
@@ -79,71 +124,101 @@ export function App() {
         onOpenWebhookSandbox={() => setIsWebhookOpen(true)}
         complianceEngine={complianceEngine}
         degradedBankCount={degradedBankCount}
+        totalCasesCount={cases.length}
       />
 
-      {/* Main App Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Banner Announcement */}
-        <div className="rounded-xl bg-[#0A0A0A] border border-[#1F1F1F] p-4 sm:p-4.5 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="space-y-1 text-center sm:text-left">
-            <div className="flex items-center justify-center sm:justify-start space-x-2">
-              <span className="px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-wider rounded bg-[#161616] text-[#A1A1A1] border border-[#262626]">
-                Track 03 · AI Revenue Recovery
-              </span>
-              <h2 className="text-xs font-semibold text-white">Autonomous Revenue Recovery Engine</h2>
-            </div>
-            <p className="text-xs text-[#71717A]">
-              Multi-vector detection, Speech-to-Speech Hinglish Voice AI, 1-Tap UPI interventions, Bank Downtime Hold Sequencer & B2B Settlement Negotiator.
-            </p>
+      {/* Column 2: Center Main Workspace */}
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+        {/* Top Breadcrumb Bar */}
+        <header className="h-12 border-b border-[#1F1F1F] bg-[#000000] px-6 flex items-center justify-between shrink-0 text-xs">
+          <div className="flex items-center space-x-2 text-[#71717A]">
+            <span>Razorpay RevGuard</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+            <span className="text-white font-medium capitalize">
+              {activeView === 'cases' ? 'All Recovery Cases' : 'Executive Overview'}
+            </span>
           </div>
 
-          <div className="flex items-center space-x-2 shrink-0">
+          <div className="flex items-center space-x-2">
             <button
               onClick={() => setIsBankHealthOpen(true)}
-              className="px-3 py-1.5 bg-[#141414] hover:bg-[#1F1F1F] text-[#D4D4D8] font-medium text-xs rounded-lg border border-[#27272A] transition-all cursor-pointer"
+              className={`flex items-center space-x-1 px-2.5 py-1 rounded-md text-[11px] font-mono border transition-colors cursor-pointer ${
+                degradedBankCount > 0
+                  ? 'bg-amber-950/40 border-amber-800/40 text-amber-300'
+                  : 'bg-[#111111] border-[#222222] text-[#A1A1A1] hover:text-white'
+              }`}
             >
-              Bank Health
+              <Activity className="w-3 h-3 text-emerald-400" />
+              <span>Gateways: {degradedBankCount > 0 ? `${degradedBankCount} Alert` : 'Healthy'}</span>
             </button>
+
+            <button
+              onClick={handleExportReport}
+              className="flex items-center space-x-1.5 px-2.5 py-1 bg-[#111111] hover:bg-[#1A1A1A] text-[#D4D4D8] hover:text-white font-mono text-[11px] rounded-md border border-[#222222] transition-colors cursor-pointer"
+              title="Download Compliance & Recovery JSON Report"
+            >
+              <Download className="w-3 h-3" />
+              <span>Export Audit</span>
+            </button>
+
             <button
               onClick={() => setIsBatchOpen(true)}
-              className="px-3.5 py-1.5 bg-white hover:bg-neutral-200 text-black font-semibold text-xs rounded-lg transition-all shadow-sm cursor-pointer"
+              className="flex items-center space-x-1.5 px-3 py-1 bg-white hover:bg-neutral-200 text-black font-semibold text-xs rounded-md transition-colors shadow-sm cursor-pointer"
             >
-              Run Batch Simulation
+              <Play className="w-3 h-3 fill-black" />
+              <span>Run Batch</span>
             </button>
           </div>
-        </div>
+        </header>
 
-        {/* Executive Dashboard KPIs & Visualizations */}
-        <ExecutiveDashboard cases={cases} />
+        {/* Main Content Area */}
+        <main className="flex-1 overflow-auto p-6">
+          {activeView === 'cases' ? (
+            <CasesTable
+              cases={cases}
+              selectedCaseId={selectedDrawerCase?.id ?? null}
+              onSelectCase={(c) => setSelectedDrawerCase(c)}
+              onSelectVoiceCase={(c) => setSelectedVoiceCase(c)}
+              onSelectWhatsAppCase={(c) => setSelectedWhatsAppCase(c)}
+              onSelectAuditCase={(c) => setSelectedAuditCase(c)}
+              onSelectNegotiateCase={(c) => setSelectedNegotiateCase(c)}
+              onOpenNewCaseModal={() => setIsNewCaseOpen(true)}
+            />
+          ) : (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl font-semibold text-white tracking-tight">Executive Analytics</h2>
+                <p className="text-xs text-[#71717A] mt-0.5">
+                  Aggregated revenue loss metrics, recovery rate %, and lifecycle distribution
+                </p>
+              </div>
+              <ExecutiveDashboard cases={cases} />
+            </div>
+          )}
+        </main>
+      </div>
 
-        {/* Recovery Cases Interactive Table */}
-        <CasesTable
-          cases={cases}
+      {/* Column 3: Right Slide-in Case Inspector Drawer */}
+      {selectedDrawerCase && (
+        <CaseDetailDrawer
+          rcase={selectedDrawerCase}
+          onClose={() => setSelectedDrawerCase(null)}
           onSelectVoiceCase={(c) => setSelectedVoiceCase(c)}
           onSelectWhatsAppCase={(c) => setSelectedWhatsAppCase(c)}
           onSelectAuditCase={(c) => setSelectedAuditCase(c)}
-          onInterveneSingle={handleInterveneSingle}
-          onOpenNewCaseModal={() => setIsNewCaseOpen(true)}
           onSelectNegotiateCase={(c) => setSelectedNegotiateCase(c)}
+          onInterveneSingle={handleInterveneSingle}
         />
-      </main>
+      )}
 
-      {/* Footer */}
-      <footer className="border-t border-[#1F1F1F] bg-black py-5 text-center text-xs text-[#71717A]">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>Razorpay RevGuard AI · Track 03: AI Revenue Recovery</span>
-          <span>Compliant Escalation & Bank Gateway Sequencer</span>
-        </div>
-      </footer>
-
-      {/* Modals */}
+      {/* Modals & Dialogs */}
       <BatchSimulator
         isOpen={isBatchOpen}
         onClose={() => setIsBatchOpen(false)}
         cases={cases}
-        onUpdateCases={handleUpdateBatchCases}
-        complianceEngine={complianceEngine}
         recoveryAgent={recoveryAgent}
+        complianceEngine={complianceEngine}
+        onUpdateCases={handleUpdateBatchCases}
       />
 
       <VoiceAgentModal
@@ -171,7 +246,7 @@ export function App() {
         isOpen={isComplianceOpen}
         onClose={() => setIsComplianceOpen(false)}
         complianceEngine={complianceEngine}
-        onSettingsUpdated={() => setCases([...cases])}
+        onSettingsUpdated={() => {}}
       />
 
       <NewCaseModal
@@ -192,7 +267,10 @@ export function App() {
         isOpen={isWebhookOpen}
         onClose={() => setIsWebhookOpen(false)}
         webhookService={webhookService}
-        onInjectCase={(newCase) => setCases(prev => [newCase, ...prev])}
+        onInjectCase={(newCase) => {
+          setCases(prev => [newCase, ...prev]);
+          setSelectedDrawerCase(newCase);
+        }}
       />
 
       <B2BNegotiatorModal
@@ -204,6 +282,3 @@ export function App() {
     </div>
   );
 }
-
-export default App;
-

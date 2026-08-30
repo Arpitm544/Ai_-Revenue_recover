@@ -125,60 +125,65 @@ export const BatchSimulator: React.FC<BatchSimulatorProps> = ({
   const stoppedCount = batchCases.filter(c => c.status === 'STOPPED_COMPLIANT').length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-      <div className="relative w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-150">
+      <div className="relative w-full max-w-4xl bg-[#0A0A0A] border border-[#1F1F1F] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[88vh]">
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/90">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1F1F1F] bg-[#000000] shrink-0">
           <div className="flex items-center space-x-3">
-            <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
-              <Zap className="w-5 h-5" />
+            <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-white">
+              <Zap className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white">Autonomous Batch Revenue Recovery Engine</h2>
-              <p className="text-xs text-slate-400">Process batch of payment failures with real-time compliance & recovery execution</p>
+              <h2 className="text-sm font-semibold text-white tracking-tight">Autonomous Batch Revenue Recovery Engine</h2>
+              <p className="text-[11px] text-[#71717A] mt-0.5">Process cohort of payment failures with real-time compliance & recovery dispatch</p>
             </div>
           </div>
+
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-all cursor-pointer"
+            className="p-1.5 text-[#71717A] hover:text-white hover:bg-[#1A1A1A] rounded-lg transition-colors cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4.5 h-4.5" />
           </button>
         </div>
 
         {/* Control Bar & Progress */}
-        <div className="p-6 space-y-5 bg-slate-950/40">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800">
-              <span className="text-xs text-slate-400 block font-medium">Batch Progress</span>
-              <span className="text-xl font-bold text-white">{currentIndex} / {batchCases.length}</span>
-              <span className="text-xs text-slate-500 block mt-0.5">Cases Processed</span>
+        <div className="p-6 space-y-5 bg-[#050505] border-b border-[#1F1F1F]">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div className="p-3.5 rounded-xl bg-[#0D0D0D] border border-[#1F1F1F]">
+              <span className="text-[10px] uppercase font-mono text-[#71717A] block">Cohort Processed</span>
+              <span className="text-xl font-bold font-mono text-white mt-1 block">{currentIndex} / {batchCases.length}</span>
+              <span className="text-[10px] text-[#71717A] block">Cases in queue</span>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-900 border border-emerald-500/30">
-              <span className="text-xs text-emerald-400 block font-semibold">Money Recovered</span>
-              <span className="text-xl font-bold text-emerald-400">₹{totalRecovered.toLocaleString('en-IN')}</span>
-              <span className="text-xs text-emerald-500/80 block mt-0.5">{recoveredCount} Payments Won Back</span>
+            <div className="p-3.5 rounded-xl bg-[#0D0D0D] border border-[#1F1F1F]">
+              <span className="text-[10px] uppercase font-mono text-emerald-400 block">Money Recovered</span>
+              <span className="text-xl font-bold font-mono text-emerald-400 mt-1 block">₹{totalRecovered.toLocaleString('en-IN')}</span>
+              <span className="text-[10px] text-[#71717A] block">{recoveredCount} Payments Won Back</span>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-900 border border-amber-500/30">
-              <span className="text-xs text-amber-400 block font-semibold">Compliant Stops</span>
-              <span className="text-xl font-bold text-amber-400">{stoppedCount}</span>
-              <span className="text-xs text-amber-500/80 block mt-0.5">DND / Hard Declines Saved</span>
+            <div className="p-3.5 rounded-xl bg-[#0D0D0D] border border-[#1F1F1F]">
+              <span className="text-[10px] uppercase font-mono text-amber-400 block">Compliant Stops</span>
+              <span className="text-xl font-bold font-mono text-amber-400 mt-1 block">{stoppedCount}</span>
+              <span className="text-[10px] text-[#71717A] block">DND / Hard Declines Protected</span>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex flex-col justify-between">
-              <span className="text-xs text-slate-400 block font-medium">Simulation Speed</span>
-              <div className="flex items-center space-x-2 mt-1">
+            <div className="p-3.5 rounded-xl bg-[#0D0D0D] border border-[#1F1F1F] flex flex-col justify-between">
+              <span className="text-[10px] uppercase font-mono text-[#71717A] block">Execution Speed</span>
+              <div className="flex items-center space-x-1.5 mt-1">
                 <button
                   onClick={() => setSpeed(500)}
-                  className={`px-2.5 py-1 text-xs font-medium rounded-md border ${speed === 500 ? 'bg-blue-600 text-white border-blue-500' : 'bg-slate-800 text-slate-400 border-slate-700'}`}
+                  className={`px-2 py-1 text-[10px] font-mono rounded border transition-colors cursor-pointer ${
+                    speed === 500 ? 'bg-white text-black font-semibold border-white' : 'bg-[#141414] text-[#71717A] border-[#222222]'
+                  }`}
                 >
                   Normal
                 </button>
                 <button
                   onClick={() => setSpeed(150)}
-                  className={`px-2.5 py-1 text-xs font-medium rounded-md border ${speed === 150 ? 'bg-blue-600 text-white border-blue-500' : 'bg-slate-800 text-slate-400 border-slate-700'}`}
+                  className={`px-2 py-1 text-[10px] font-mono rounded border transition-colors cursor-pointer ${
+                    speed === 150 ? 'bg-white text-black font-semibold border-white' : 'bg-[#141414] text-[#71717A] border-[#222222]'
+                  }`}
                 >
                   Fast (150ms)
                 </button>
@@ -186,15 +191,15 @@ export const BatchSimulator: React.FC<BatchSimulatorProps> = ({
             </div>
           </div>
 
-          {/* Progress Bar */}
-          <div>
-            <div className="flex justify-between text-xs text-slate-400 mb-1 font-medium">
-              <span>Execution Progress ({progressPct.toFixed(0)}%)</span>
-              <span>{currentIndex === batchCases.length ? "Batch Complete!" : "Processing active cohort..."}</span>
+          {/* Progress Bar with neutral color */}
+          <div className="space-y-1.5">
+            <div className="flex justify-between text-xs text-[#71717A] font-mono">
+              <span>Progress ({progressPct.toFixed(0)}%)</span>
+              <span className="text-white">{currentIndex === batchCases.length ? "Batch Complete!" : "Processing live cohort..."}</span>
             </div>
-            <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-700">
+            <div className="w-full h-1.5 bg-[#1A1A1A] rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-400 rounded-full transition-all duration-300 shadow-md shadow-blue-500/50"
+                className="h-full bg-neutral-300 rounded-full transition-all duration-300"
                 style={{ width: `${progressPct}%` }}
               />
             </div>
@@ -202,67 +207,67 @@ export const BatchSimulator: React.FC<BatchSimulatorProps> = ({
 
           {/* Buttons */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2.5">
               {!isRunning ? (
                 <button
                   onClick={handleStart}
-                  className="flex items-center space-x-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm rounded-xl shadow-lg shadow-emerald-600/30 transition-all cursor-pointer"
+                  className="flex items-center space-x-2 px-4 py-2 bg-white hover:bg-neutral-200 text-black font-semibold text-xs rounded-lg transition-colors cursor-pointer shadow-sm"
                 >
-                  <Play className="w-4 h-4 fill-white" />
+                  <Play className="w-3.5 h-3.5 fill-black" />
                   <span>{currentIndex > 0 ? "Resume Batch" : "Start Recovery Batch"}</span>
                 </button>
               ) : (
                 <button
                   onClick={handlePause}
-                  className="flex items-center space-x-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-semibold text-sm rounded-xl shadow-lg shadow-amber-600/30 transition-all cursor-pointer"
+                  className="flex items-center space-x-2 px-4 py-2 bg-amber-950/50 hover:bg-amber-900/60 text-amber-300 font-semibold text-xs rounded-lg border border-amber-800/40 transition-colors cursor-pointer"
                 >
-                  <Pause className="w-4 h-4 fill-white" />
+                  <Pause className="w-3.5 h-3.5 fill-amber-300" />
                   <span>Pause Execution</span>
                 </button>
               )}
 
               <button
                 onClick={handleReset}
-                className="flex items-center space-x-1.5 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium rounded-xl border border-slate-700 transition-all cursor-pointer"
+                className="flex items-center space-x-1.5 px-3 py-2 bg-[#141414] hover:bg-[#1E1E1E] text-[#A1A1A1] hover:text-white text-xs font-medium rounded-lg border border-[#262626] transition-colors cursor-pointer"
               >
-                <RefreshCw className="w-4 h-4" />
+                <RefreshCw className="w-3.5 h-3.5" />
                 <span>Reset</span>
               </button>
             </div>
 
             {currentIndex === batchCases.length && (
-              <span className="flex items-center space-x-1.5 text-xs text-emerald-400 font-semibold bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/30">
-                <Check className="w-4 h-4" />
-                <span>Batch Simulation Finished</span>
+              <span className="flex items-center space-x-1.5 text-xs text-emerald-400 font-mono bg-emerald-950/40 px-3 py-1 rounded-md border border-emerald-800/40">
+                <Check className="w-3.5 h-3.5" />
+                <span>Cohort Finished</span>
               </span>
             )}
           </div>
         </div>
 
         {/* Live Execution Stream / Console */}
-        <div className="flex-1 p-6 overflow-y-auto bg-slate-950 font-mono text-xs space-y-2 border-t border-slate-800 min-h-[220px]">
-          <div className="text-slate-500 text-[11px] font-sans font-semibold uppercase tracking-wider mb-2 flex items-center justify-between">
-            <span>Live Agent Intervention & Audit Log Stream</span>
-            <span>{logs.length} events logged</span>
+        <div className="flex-1 p-5 overflow-y-auto bg-[#070707] font-mono text-[11px] space-y-1.5 min-h-[220px]">
+          <div className="text-[#52525B] text-[10px] font-mono uppercase tracking-wider mb-2 flex items-center justify-between">
+            <span>Live Intervention & Audit Stream</span>
+            <span>{logs.length} events</span>
           </div>
 
           {logs.length === 0 ? (
-            <div className="text-center py-8 text-slate-600 font-sans text-sm">
-              Press <strong className="text-slate-400">"Start Recovery Batch"</strong> to begin live autonomous revenue recovery.
+            <div className="text-center py-10 text-[#52525B] font-sans text-xs">
+              Press <strong className="text-white">"Start Recovery Batch"</strong> to trigger autonomous multi-vector recovery.
             </div>
           ) : (
             logs.map((log, index) => (
               <div
                 key={index}
-                className={`p-2.5 rounded-lg border flex items-start space-x-2 transition-all ${
+                className={`p-2 rounded-lg border flex items-start space-x-2 transition-all ${
                   log.type === 'success'
-                    ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-300'
+                    ? 'bg-emerald-950/20 border-emerald-800/30 text-emerald-300'
                     : log.type === 'blocked'
-                    ? 'bg-amber-950/30 border-amber-500/30 text-amber-300'
-                    : 'bg-slate-900 border-slate-800 text-slate-300'
+                    ? 'bg-amber-950/20 border-amber-800/30 text-amber-300'
+                    : 'bg-[#111111] border-[#1F1F1F] text-[#EDEDED]'
                 }`}
               >
-                <span className="text-slate-500 shrink-0 font-sans">{log.time}</span>
+                <span className="text-[#71717A] shrink-0 font-mono text-[10px]">{log.time}</span>
                 <span className="break-words font-medium">{log.text}</span>
               </div>
             ))

@@ -36,69 +36,69 @@ export const BankHealthModal: React.FC<BankHealthModalProps> = ({
   const degradedCount = banks.filter(b => b.status === 'DEGRADED' || b.status === 'OUTAGE').length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-      <div className="relative w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-150">
+      <div className="relative w-full max-w-4xl bg-[#0A0A0A] border border-[#1F1F1F] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[88vh]">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-800 bg-slate-900/90 flex items-center justify-between">
+        <div className="px-6 py-4 border-b border-[#1F1F1F] bg-[#000000] flex items-center justify-between shrink-0">
           <div className="flex items-center space-x-3">
-            <div className="p-2.5 rounded-xl bg-gradient-to-tr from-amber-500/20 to-orange-500/20 text-amber-400 border border-amber-500/30">
-              <Activity className="w-5 h-5 animate-pulse" />
+            <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+              <Activity className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <h3 className="text-base font-bold text-white">Bank Gateway Downtime Pulse Matrix</h3>
-                <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${
+                <h3 className="text-sm font-semibold text-white tracking-tight">Bank Gateway Downtime Pulse Matrix</h3>
+                <span className={`px-2 py-0.5 text-[10px] font-mono rounded ${
                   degradedCount > 0 
-                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' 
-                    : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                    ? 'bg-amber-950/50 text-amber-400 border border-amber-800/40' 
+                    : 'bg-emerald-950/50 text-emerald-400 border border-emerald-800/40'
                 }`}>
                   {degradedCount > 0 ? `${degradedCount} Bank Degraded` : 'All Gateways Healthy'}
                 </span>
               </div>
-              <p className="text-xs text-slate-400">
-                Real-time issuing bank uptime monitoring & intelligent mandate retry sequestering
+              <p className="text-[11px] text-[#71717A] mt-0.5">
+                Real-time issuing bank uptime monitoring & intelligent mandate retry sequencer
               </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-all cursor-pointer"
+            className="p-1.5 text-[#71717A] hover:text-white hover:bg-[#1A1A1A] rounded-lg transition-colors cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4.5 h-4.5" />
           </button>
         </div>
 
         {/* Action Alert Banner */}
         {lastActionLog && (
-          <div className="px-6 py-2.5 bg-slate-950 border-b border-slate-800 text-xs font-semibold text-amber-300 flex items-center justify-between">
+          <div className="px-6 py-2.5 bg-[#111111] border-b border-[#1F1F1F] text-xs font-mono text-amber-300 flex items-center justify-between shrink-0">
             <span className="flex items-center space-x-2">
-              <Shield className="w-4 h-4 text-amber-400" />
+              <Shield className="w-3.5 h-3.5 text-amber-400" />
               <span>{lastActionLog}</span>
             </span>
-            <span className="text-[10px] text-slate-500 font-mono">Real-time Policy Enforced</span>
+            <span className="text-[10px] text-[#71717A]">Policy Enforced</span>
           </div>
         )}
 
         {/* Top Summary Metrics */}
-        <div className="p-6 bg-slate-950 space-y-6 overflow-y-auto flex-1">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
-              <span className="text-xs text-slate-400 block font-medium">Smart Downtime Holds</span>
-              <span className="text-2xl font-bold text-amber-400 mt-1 block">{totalHeldCount} Retries Held</span>
-              <span className="text-[11px] text-slate-500">Auto-deferred to 04:00 AM off-peak</span>
+        <div className="p-6 space-y-6 overflow-y-auto flex-1 bg-[#050505]">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="p-4 rounded-xl bg-[#0D0D0D] border border-[#1F1F1F] space-y-1">
+              <span className="text-[10px] text-[#71717A] uppercase font-mono block">Smart Downtime Holds</span>
+              <span className="text-xl font-bold text-amber-400 font-mono block">{totalHeldCount} Retries Held</span>
+              <span className="text-[11px] text-[#71717A] block">Auto-deferred to 04:00 AM off-peak</span>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-900 border border-emerald-500/30">
-              <span className="text-xs text-emerald-400 block font-semibold">Protected Revenue</span>
-              <span className="text-2xl font-bold text-white mt-1 block">₹{totalProtectedAmt.toLocaleString('en-IN')}</span>
-              <span className="text-[11px] text-emerald-500/80">Saved from failed mandate penalty charges</span>
+            <div className="p-4 rounded-xl bg-[#0D0D0D] border border-[#1F1F1F] space-y-1">
+              <span className="text-[10px] text-emerald-400 uppercase font-mono block">Protected Revenue</span>
+              <span className="text-xl font-bold text-white font-mono block">₹{totalProtectedAmt.toLocaleString('en-IN')}</span>
+              <span className="text-[11px] text-[#71717A] block">Saved from failed penalty charges</span>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-900 border border-indigo-500/30 flex flex-col justify-between">
-              <span className="text-xs text-indigo-300 block font-semibold">Smart Mandate Sequencer</span>
-              <span className="text-xs text-slate-300 mt-1 block leading-relaxed">
-                Prevents random blind retries that incur bank charges. Delays until issuing bank health recovers.
+            <div className="p-4 rounded-xl bg-[#0D0D0D] border border-[#1F1F1F] flex flex-col justify-between space-y-1">
+              <span className="text-[10px] text-[#A1A1A1] uppercase font-mono block">Smart Sequencer</span>
+              <span className="text-[11px] text-[#D4D4D8] leading-relaxed block">
+                Prevents random blind retries that incur penalty charges. Delays until bank health recovers.
               </span>
             </div>
           </div>
@@ -106,46 +106,46 @@ export const BankHealthModal: React.FC<BankHealthModalProps> = ({
           {/* Banks Grid */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                Issuing Bank Gateways (Live Status)
+              <h4 className="text-[10px] font-mono uppercase tracking-wider text-[#71717A]">
+                Issuing Bank Gateways (Live Health)
               </h4>
-              <span className="text-[11px] text-slate-500">Click toggle to simulate bank failure</span>
+              <span className="text-[11px] text-[#52525B] font-mono">Click action to simulate outage</span>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {banks.map((bank) => {
                 const isDegraded = bank.status === 'DEGRADED' || bank.status === 'OUTAGE';
                 return (
                   <div
                     key={bank.id}
-                    className={`p-4 rounded-2xl border transition-all ${
+                    className={`p-3.5 rounded-xl border transition-all ${
                       isDegraded 
-                        ? 'bg-amber-950/20 border-amber-500/40 shadow-lg shadow-amber-950/30' 
-                        : 'bg-slate-900 border-slate-800'
+                        ? 'bg-amber-950/20 border-amber-800/40' 
+                        : 'bg-[#0D0D0D] border-[#1F1F1F]'
                     }`}
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       {/* Left Bank Details */}
                       <div className="space-y-1">
                         <div className="flex items-center space-x-2">
-                          <span className="font-bold text-white text-sm">{bank.bankName}</span>
-                          <span className="text-xs text-slate-400 font-mono">({bank.code})</span>
-                          <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md flex items-center space-x-1 ${
+                          <span className="font-semibold text-white text-xs">{bank.bankName}</span>
+                          <span className="text-[10px] text-[#71717A] font-mono">({bank.code})</span>
+                          <span className={`px-2 py-0.5 text-[9px] font-mono rounded flex items-center space-x-1 ${
                             isDegraded 
-                              ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' 
-                              : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                              ? 'bg-amber-950/60 text-amber-400 border border-amber-800/40' 
+                              : 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/40'
                           }`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${isDegraded ? 'bg-rose-400 animate-ping' : 'bg-emerald-400'}`} />
+                            <span className={`w-1.5 h-1.5 rounded-full ${isDegraded ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'}`} />
                             <span>{bank.status}</span>
                           </span>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
-                          <span>Channel: <strong className="text-slate-200">{bank.channel}</strong></span>
-                          <span>•</span>
-                          <span>Success Rate: <strong className={isDegraded ? 'text-rose-400' : 'text-emerald-400'}>{bank.successRate}%</strong></span>
-                          <span>•</span>
-                          <span>Latency: <strong className="text-slate-200">{bank.latencyMs}ms</strong></span>
+                        <div className="flex flex-wrap items-center gap-2.5 text-[11px] text-[#71717A]">
+                          <span>Channel: <strong className="text-[#D4D4D8] font-normal">{bank.channel}</strong></span>
+                          <span>·</span>
+                          <span>Success Rate: <strong className={`font-mono ${isDegraded ? 'text-amber-400' : 'text-emerald-400'}`}>{bank.successRate}%</strong></span>
+                          <span>·</span>
+                          <span>Latency: <strong className="text-[#D4D4D8] font-mono font-normal">{bank.latencyMs}ms</strong></span>
                         </div>
                       </div>
 
@@ -153,19 +153,19 @@ export const BankHealthModal: React.FC<BankHealthModalProps> = ({
                       <div className="flex items-center space-x-3 self-end sm:self-auto">
                         {isDegraded ? (
                           <div className="text-right">
-                            <span className="text-xs font-bold text-amber-300 block">{bank.casesOnHoldCount} Retries Held</span>
-                            <span className="text-[10px] text-slate-400 block">{bank.recommendedWindow}</span>
+                            <span className="text-xs font-mono font-semibold text-amber-300 block">{bank.casesOnHoldCount} Retries Held</span>
+                            <span className="text-[10px] text-[#71717A] font-mono block">{bank.recommendedWindow}</span>
                           </div>
                         ) : (
-                          <span className="text-xs text-emerald-400 font-medium">Optimal Window Active</span>
+                          <span className="text-[11px] text-emerald-400 font-mono">Optimal Window Active</span>
                         )}
 
                         <button
                           onClick={() => handleToggleOutage(bank.code)}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
                             isDegraded
-                              ? 'bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border-emerald-500/40'
-                              : 'bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border-rose-500/40'
+                              ? 'bg-emerald-950/40 hover:bg-emerald-900/50 text-emerald-300 border-emerald-800/50'
+                              : 'bg-[#181818] hover:bg-[#222222] text-[#EDEDED] border-[#2A2A2A]'
                           }`}
                         >
                           {isDegraded ? 'Restore Gateway' : 'Simulate Outage'}
@@ -175,10 +175,10 @@ export const BankHealthModal: React.FC<BankHealthModalProps> = ({
 
                     {/* Progress Bar for Success Rate */}
                     <div className="mt-3">
-                      <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                      <div className="w-full h-1 bg-[#1C1C1C] rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all duration-500 ${
-                            isDegraded ? 'bg-gradient-to-r from-rose-500 to-amber-500' : 'bg-emerald-500'
+                            isDegraded ? 'bg-neutral-600' : 'bg-neutral-300'
                           }`}
                           style={{ width: `${bank.successRate}%` }}
                         />
@@ -192,13 +192,13 @@ export const BankHealthModal: React.FC<BankHealthModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-slate-900 border-t border-slate-800 flex justify-between items-center text-xs text-slate-400">
-          <span>Razorpay Smart Mandate Retry Engine</span>
+        <div className="px-6 py-3.5 bg-[#000000] border-t border-[#1F1F1F] flex justify-between items-center text-xs text-[#71717A] shrink-0">
+          <span className="font-mono text-[11px]">Razorpay Smart Mandate Retry Sequencer</span>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl border border-slate-700 transition-all cursor-pointer"
+            className="px-3 py-1.5 bg-[#181818] hover:bg-[#222222] text-white font-medium rounded-lg border border-[#2A2A2A] transition-colors cursor-pointer text-xs"
           >
-            Close Gateway Matrix
+            Close Matrix
           </button>
         </div>
       </div>

@@ -65,48 +65,48 @@ export const NewCaseModal: React.FC<NewCaseModalProps> = ({ isOpen, onClose, onA
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-      <div className="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-150">
+      <div className="relative w-full max-w-md bg-[#0A0A0A] border border-[#1F1F1F] rounded-2xl shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-800 bg-slate-900/90 flex items-center justify-between">
+        <div className="px-6 py-4 border-b border-[#1F1F1F] bg-[#000000] flex items-center justify-between shrink-0">
           <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
-              <PlusCircle className="w-5 h-5" />
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+              <PlusCircle className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">Simulate New Revenue Leak</h3>
-              <p className="text-xs text-slate-400">Inject payment failure to trigger live AI recovery</p>
+              <h3 className="text-sm font-semibold text-white tracking-tight">Simulate New Revenue Leak</h3>
+              <p className="text-[11px] text-[#71717A] mt-0.5">Inject payment failure to trigger live AI recovery</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-all cursor-pointer"
+            className="p-1.5 text-[#71717A] hover:text-white hover:bg-[#1A1A1A] rounded-lg transition-colors cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4.5 h-4.5" />
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 bg-slate-950">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 bg-[#050505]">
           <div>
-            <label className="text-xs font-semibold text-slate-300 block mb-1">Customer Name</label>
+            <label className="text-[10px] uppercase font-mono text-[#71717A] block mb-1">Customer Name</label>
             <input
               type="text"
               required
               placeholder="e.g. Anand Kumar"
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-xl p-2.5 focus:border-blue-500 focus:outline-none"
+              className="w-full bg-[#111111] border border-[#222222] text-white text-xs rounded-lg p-2.5 focus:border-[#444444] focus:outline-none"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1">Leak Vector</label>
+              <label className="text-[10px] uppercase font-mono text-[#71717A] block mb-1">Leak Vector</label>
               <select
                 value={leakVector}
                 onChange={(e) => setLeakVector(e.target.value as LeakVector)}
-                className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-xl p-2.5 focus:border-blue-500 focus:outline-none cursor-pointer"
+                className="w-full bg-[#111111] border border-[#222222] text-white text-xs rounded-lg p-2.5 focus:border-[#444444] focus:outline-none cursor-pointer"
               >
                 <option value="SUBSCRIPTION_FAIL">Subscription Fail</option>
                 <option value="CHECKOUT_ABANDON">Checkout Abandon</option>
@@ -116,25 +116,25 @@ export const NewCaseModal: React.FC<NewCaseModalProps> = ({ isOpen, onClose, onA
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1">Amount at Risk (₹)</label>
+              <label className="text-[10px] uppercase font-mono text-[#71717A] block mb-1">Amount at Risk (₹)</label>
               <input
                 type="number"
                 required
                 min="100"
                 value={amountAtRisk}
                 onChange={(e) => setAmountAtRisk(parseInt(e.target.value) || 0)}
-                className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-xl p-2.5 focus:border-blue-500 focus:outline-none"
+                className="w-full bg-[#111111] border border-[#222222] text-white text-xs rounded-lg p-2.5 focus:border-[#444444] focus:outline-none font-mono"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1">Issuing Bank</label>
+              <label className="text-[10px] uppercase font-mono text-[#71717A] block mb-1">Issuing Bank</label>
               <select
                 value={issuingBank}
                 onChange={(e) => setIssuingBank(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-xl p-2.5 focus:border-blue-500 focus:outline-none cursor-pointer"
+                className="w-full bg-[#111111] border border-[#222222] text-white text-xs rounded-lg p-2.5 focus:border-[#444444] focus:outline-none cursor-pointer"
               >
                 <option value="HDFC Bank">HDFC Bank</option>
                 <option value="ICICI Bank">ICICI Bank</option>
@@ -145,33 +145,33 @@ export const NewCaseModal: React.FC<NewCaseModalProps> = ({ isOpen, onClose, onA
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1">Phone Number</label>
+              <label className="text-[10px] uppercase font-mono text-[#71717A] block mb-1">Phone Number</label>
               <input
                 type="text"
                 value={customerPhone}
                 onChange={(e) => setCustomerPhone(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-xl p-2.5 focus:border-blue-500 focus:outline-none font-mono"
+                className="w-full bg-[#111111] border border-[#222222] text-white text-xs rounded-lg p-2.5 focus:border-[#444444] focus:outline-none font-mono"
               />
             </div>
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-300 block mb-1">Failure Reason</label>
+            <label className="text-[10px] uppercase font-mono text-[#71717A] block mb-1">Failure Reason</label>
             <input
               type="text"
               value={failureReason}
               onChange={(e) => setFailureReason(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-xl p-2.5 focus:border-blue-500 focus:outline-none"
+              className="w-full bg-[#111111] border border-[#222222] text-white text-xs rounded-lg p-2.5 focus:border-[#444444] focus:outline-none"
             />
           </div>
 
           <div className="pt-2">
             <button
               type="submit"
-              className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 flex items-center justify-center space-x-2 cursor-pointer transition-all"
+              className="w-full py-2.5 bg-white hover:bg-neutral-200 text-black font-semibold text-xs rounded-xl shadow-sm flex items-center justify-center space-x-2 cursor-pointer transition-colors"
             >
-              <Zap className="w-4 h-4 fill-white" />
-              <span>Submit & Trigger Autonomous AI Diagnosis</span>
+              <Zap className="w-3.5 h-3.5 fill-black" />
+              <span>Submit & Trigger AI Recovery</span>
             </button>
           </div>
         </form>
