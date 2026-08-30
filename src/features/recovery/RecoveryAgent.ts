@@ -224,34 +224,49 @@ Payment 7 dino se overdue hai. Kya aap isse aaj settle kar sakte hain ya payment
    * Parses natural spoken speech in Hinglish/English and generates dynamic contextual response
    */
   public processConversationalSpeech(rcase: RecoveryCase, userInput: string): SpeechTurnResponse {
-    const input = userInput.toLowerCase();
     const name = rcase.customerName;
     const amount = `₹${rcase.amountAtRisk.toLocaleString('en-IN')}`;
 
-    // 1. Intent: Gratitude / Closing / Sign-off (Context-Aware)
-    const gratitudeKeywords = ['thank', 'dhanyavaad', 'shukriya', 'welcome', 'bye', 'alvida', 'ok', 'theek', 'thik', 'chalega', 'sure', 'great', 'done', 'accha'];
-    if (gratitudeKeywords.some(k => input.includes(k))) {
+    if (!userInput || !userInput.trim()) {
+      return {
+        detectedIntent: 'GREETING_ACK',
+        replyText: `Namaste ${name}ji! Main Razorpay Revenue Care se bol raha hoon. Kya aap mujhe sun pa rahe hain? Aapka ₹${amount} ka payment pending hai.`,
+        updatedCase: rcase,
+        actionTaken: 'Empty input received. Re-prompted customer.'
+      };
+    }
+
+    const input = userInput.toLowerCase().trim();
+
+    // 1. Intent: Call Closing & Gratitude (e.g. "thanku", "dhanyavaad", "bye", "okay thanks", "अलविदा", "धन्यवाद")
+    const closingKeywords = [
+      'thank', 'shukriya', 'dhanyavaad', 'dhanyawad', 'bye', 'alvida', 'take care', 'good day', 
+      'have a good day', 'thx', 'thanku', 'thank you', 'ok thanks', 'done thanks', 'धन्यवाद', 'शुक्रिया', 'अलविदा', 'बाय'
+    ];
+    const isClosing = closingKeywords.some(k => input.includes(k));
+
+    if (isClosing) {
       if (rcase.status === 'PROMISED_TO_PAY') {
-        const promisedDateStr = rcase.promiseToPayDate 
+        const p2pDateFormatted = rcase.promiseToPayDate 
           ? new Date(rcase.promiseToPayDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
           : 'scheduled date';
         return {
           detectedIntent: 'CALL_CLOSING',
-          replyText: `Most welcome ${name}ji! Aapka reminder ${promisedDateStr} ke liye safely locked hai. Call disconnect kar raha hoon. Have a wonderful day ahead!`,
+          replyText: `Aapka bahut shukriya ${name}ji! Reminder ${p2pDateFormatted} ke liye confirmed hai. Have a wonderful day ahead!`,
           updatedCase: rcase,
-          actionTaken: 'Call concluded gracefully under Promise-to-Pay status.'
+          actionTaken: 'Call concluded gracefully with Promise-to-Pay locked.'
         };
       } else if (rcase.status === 'RECOVERED') {
         return {
           detectedIntent: 'CALL_CLOSING',
-          replyText: `Aapka swagat hai ${name}ji! Payment securely settle ho chuki hai. Razorpay use karne ke liye dhanyavaad, alvida!`,
+          replyText: `Payment confirm karne ke liye dhanyavaad ${name}ji! Aapki receipt registered email aur WhatsApp par bhej di gayi hai. Have a great day!`,
           updatedCase: rcase,
-          actionTaken: 'Call concluded gracefully under Recovered status.'
+          actionTaken: 'Call concluded gracefully with Recovery confirmed.'
         };
       } else if (rcase.status === 'STOPPED_COMPLIANT') {
         return {
           detectedIntent: 'CALL_CLOSING',
-          replyText: `Dhanyavaad ${name}ji. Humne sabhi updates note kar liye hain. Aapka din shubh rahe!`,
+          replyText: `Dhanyavaad ${name}ji. Humne sabhi updates note kar liye hain aur compliance freeze apply kar diya hai. Aapka din shubh rahe!`,
           updatedCase: rcase,
           actionTaken: 'Call concluded gracefully under Compliance Freeze.'
         };
@@ -265,17 +280,23 @@ Payment 7 dino se overdue hai. Kya aap isse aaj settle kar sakte hain ya payment
       }
     }
 
-    // 2. Intent: Promise to Pay (P2P)
-    const p2pKeywords = ['salary', 'tareekh', 'date', 'pay karunga', 'later', 'next week', 'kal', 'baad', 'monday', 'friday', '5th', '1st', 'promise', 'schedule'];
+    // 2. Intent: Promise to Pay (P2P) — Supports Hindi, English & number words
+    const p2pKeywords = [
+      'salary', 'tareekh', 'tarikh', 'date', 'pay karunga', 'de dunga', 'kar dunga', 'later', 'next week', 
+      'kal', 'baad', 'monday', 'friday', '5th', '1st', 'promise', 'schedule', 'agli tareekh', 
+      'दे दूंगा', 'तारीख', 'बाद में', 'कल', 'सैलरी', 'पे कर दूंगा'
+    ];
     const hasP2P = p2pKeywords.some(k => input.includes(k)) || /\b(\d{1,2})(st|nd|rd|th|\s*(tareekh|tarikh|date))?\b/.test(input);
 
-    if (hasP2P && !input.includes('cancel') && !input.includes('dispute')) {
+    if (hasP2P && !input.includes('cancel') && !input.includes('dispute') && !input.includes('कैंसिल')) {
       let targetDay = 5;
       const dayMatch = input.match(/\b(\d{1,2})\b/);
-      if (dayMatch && parseInt(dayMatch[1]) <= 31) {
+      if (dayMatch && parseInt(dayMatch[1]) >= 1 && parseInt(dayMatch[1]) <= 31) {
         targetDay = parseInt(dayMatch[1]);
-      } else if (input.includes('1st') || input.includes('salary')) {
+      } else if (input.includes('1st') || input.includes('salary') || input.includes('सैलरी')) {
         targetDay = 1;
+      } else if (input.includes('10') || input.includes('tenth') || input.includes('दस')) {
+        targetDay = 10;
       }
 
       const now = new Date();
@@ -300,8 +321,11 @@ Payment 7 dino se overdue hai. Kya aap isse aaj settle kar sakte hain ya payment
     }
 
     // 3. Intent: Pay Now / Send Payment Link
-    const payNowKeywords = ['abhi', 'now', 'link', 'whatsapp', 'bhejo', 'send', 'pay', 'upi', 'gpay', 'phonepe', 'karo', 'yes'];
-    if (payNowKeywords.some(k => input.includes(k)) && !input.includes('nahi') && !input.includes('not') && !input.includes('cancel')) {
+    const payNowKeywords = [
+      'abhi', 'now', 'link', 'whatsapp', 'bhejo', 'send', 'pay', 'upi', 'gpay', 'phonepe', 
+      'karo', 'yes', 'haan', 'karna hai', 'bhej do', 'अभी', 'भेजो', 'हाँ', 'लिंक'
+    ];
+    if (payNowKeywords.some(k => input.includes(k)) && !input.includes('nahi') && !input.includes('not') && !input.includes('cancel') && !input.includes('नहीं')) {
       const recovered: RecoveryCase = {
         ...rcase,
         status: 'RECOVERED',
@@ -328,7 +352,10 @@ Payment 7 dino se overdue hai. Kya aap isse aaj settle kar sakte hain ya payment
     }
 
     // 4. Intent: Dispute / Opt Out
-    const disputeKeywords = ['dispute', 'cancel', 'band karo', 'mat karo', 'wrong', 'spam', 'fraud', 'stop calling', 'nahi chahiye', 'nahi karunga'];
+    const disputeKeywords = [
+      'dispute', 'cancel', 'band karo', 'mat karo', 'wrong', 'spam', 'fraud', 'stop calling', 
+      'nahi chahiye', 'nahi karunga', 'galat', 'refuse', 'शिकायत', 'गलत', 'मत करो', 'बंद करो'
+    ];
     if (disputeKeywords.some(k => input.includes(k))) {
       const disputed: RecoveryCase = {
         ...rcase,
@@ -357,7 +384,7 @@ Payment 7 dino se overdue hai. Kya aap isse aaj settle kar sakte hain ya payment
     }
 
     // 5. Intent: Query Amount / Reason
-    const queryKeywords = ['kitna', 'amount', 'kyu', 'reason', 'fail', 'why', 'how much', 'what', 'kaha'];
+    const queryKeywords = ['kitna', 'amount', 'kyu', 'reason', 'fail', 'why', 'how much', 'what', 'kaha', 'कितना', 'क्यों'];
     if (queryKeywords.some(k => input.includes(k))) {
       return {
         detectedIntent: 'QUERY_DETAILS',
@@ -367,8 +394,8 @@ Payment 7 dino se overdue hai. Kya aap isse aaj settle kar sakte hain ya payment
       };
     }
 
-    // 6. Intent: Greetings / Identity ("Hi", "Hello", "Kaun ho")
-    const greetingKeywords = ['hi', 'hello', 'hey', 'namaste', 'kaun', 'who', 'sun', 'bolo'];
+    // 6. Intent: Greetings / Identity ("Hi", "Hello", "Kaun ho", "नमस्ते")
+    const greetingKeywords = ['hi', 'hello', 'hey', 'namaste', 'namaskar', 'kaun', 'who', 'sun', 'bolo', 'नमस्ते', 'नमस्कार', 'कौन'];
     if (greetingKeywords.some(k => input.split(' ').includes(k) || input === k)) {
       return {
         detectedIntent: 'GREETING_ACK',
