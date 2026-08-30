@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, PhoneCall, MessageSquare, FileText, CheckCircle2, AlertTriangle, ShieldAlert, ArrowUpRight, Clock, Plus, Handshake } from 'lucide-react';
-import type { RecoveryCase, LeakVector, CaseStatus } from '../types/recovery';
+import type { RecoveryCase, LeakVector, CaseStatus } from './types';
 
 interface CasesTableProps {
   cases: RecoveryCase[];

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, ShieldCheck, Check, Clock, UserX } from 'lucide-react';
-import { ComplianceEngine } from '../services/complianceEngine';
-import type { ComplianceSettings } from '../types/recovery';
+import { ComplianceEngine } from '../recovery/ComplianceEngine';
+import type { ComplianceSettings } from '../recovery/types';
 
 interface ComplianceConfigModalProps {
   isOpen: boolean;

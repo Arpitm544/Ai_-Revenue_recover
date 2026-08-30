@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { PlusCircle, X, Zap } from 'lucide-react';
-import type { RecoveryCase, LeakVector } from '../types/recovery';
+import type { RecoveryCase, LeakVector } from '../recovery/types';
 
 interface NewCaseModalProps {
   isOpen: boolean;

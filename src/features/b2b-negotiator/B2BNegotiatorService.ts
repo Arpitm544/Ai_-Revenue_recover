@@ -4,7 +4,7 @@ import type {
   NegotiationMessage,
   NegotiationIntent,
   PromiseToPay,
-} from '../types/b2bNegotiator';
+} from './types';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function addDays(days: number): string {

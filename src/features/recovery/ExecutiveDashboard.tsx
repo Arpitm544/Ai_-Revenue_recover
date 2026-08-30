@@ -1,6 +1,6 @@
 import React from 'react';
 import { IndianRupee, TrendingUp, ShieldAlert, Zap } from 'lucide-react';
-import type { RecoveryCase, LeakVector } from '../types/recovery';
+import type { RecoveryCase, LeakVector } from './types';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, PieChart, Pie } from 'recharts';
 
 interface ExecutiveDashboardProps {

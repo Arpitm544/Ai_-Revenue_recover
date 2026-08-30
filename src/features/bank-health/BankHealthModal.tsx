@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Activity, X, Shield } from 'lucide-react';
-import type { BankHealthNode } from '../types/bankHealth';
-import type { RecoveryCase } from '../types/recovery';
-import { BankHealthService } from '../services/bankHealthService';
+import type { BankHealthNode } from './types';
+import type { RecoveryCase } from '../recovery/types';
+import { BankHealthService } from './BankHealthService';
 
 interface BankHealthModalProps {
   isOpen: boolean;

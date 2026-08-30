@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { PhoneCall, PhoneOff, Mic, MicOff, Volume2, Sparkles, Send, Check, Bot, User } from 'lucide-react';
-import type { RecoveryCase } from '../types/recovery';
-import { RevenueRecoveryAgent, type SpeechTurnResponse } from '../services/recoveryAgent';
+import type { RecoveryCase } from '../recovery/types';
+import { RevenueRecoveryAgent, type SpeechTurnResponse } from '../recovery/RecoveryAgent';
 
 interface VoiceAgentModalProps {
   isOpen: boolean;

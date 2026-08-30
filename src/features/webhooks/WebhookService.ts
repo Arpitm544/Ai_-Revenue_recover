@@ -1,11 +1,11 @@
-import type { RecoveryCase, FailureCategory, ActionChannel } from '../types/recovery';
+import type { RecoveryCase, FailureCategory, ActionChannel } from '../recovery/types';
 import type {
   RazorpayWebhookEvent,
   RazorpayWebhookPayload,
   WebhookIngestionLog,
   WebhookStep,
   WebhookTemplate,
-} from '../types/webhook';
+} from './types';
 
 // ─── HMAC Signature Simulator ────────────────────────────────────────────────
 function simulateHmacVerification(): { valid: boolean; hash: string } {

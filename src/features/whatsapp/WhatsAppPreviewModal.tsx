@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, CheckCircle2, Zap, Shield } from 'lucide-react';
-import type { RecoveryCase } from '../types/recovery';
+import type { RecoveryCase } from '../recovery/types';
 
 interface WhatsAppPreviewModalProps {
   isOpen: boolean;

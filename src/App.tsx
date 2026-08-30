@@ -1,23 +1,23 @@
 import { useState, useMemo } from 'react';
-import { Navbar } from './components/Navbar';
-import { ExecutiveDashboard } from './components/ExecutiveDashboard';
-import { CasesTable } from './components/CasesTable';
-import { BatchSimulator } from './components/BatchSimulator';
-import { VoiceAgentModal } from './components/VoiceAgentModal';
-import { WhatsAppPreviewModal } from './components/WhatsAppPreviewModal';
-import { AuditTrailModal } from './components/AuditTrailModal';
-import { ComplianceConfigModal } from './components/ComplianceConfigModal';
-import { NewCaseModal } from './components/NewCaseModal';
-import { BankHealthModal } from './components/BankHealthModal';
-import { WebhookSandboxModal } from './components/WebhookSandboxModal';
-import { B2BNegotiatorModal } from './components/B2BNegotiatorModal';
+import { Navbar } from './shared/Navbar';
+import { ExecutiveDashboard } from './features/recovery/ExecutiveDashboard';
+import { CasesTable } from './features/recovery/CasesTable';
+import { BatchSimulator } from './features/recovery/BatchSimulator';
+import { VoiceAgentModal } from './features/voice/VoiceAgentModal';
+import { WhatsAppPreviewModal } from './features/whatsapp/WhatsAppPreviewModal';
+import { AuditTrailModal } from './features/compliance/AuditTrailModal';
+import { ComplianceConfigModal } from './features/compliance/ComplianceConfigModal';
+import { NewCaseModal } from './features/compliance/NewCaseModal';
+import { BankHealthModal } from './features/bank-health/BankHealthModal';
+import { WebhookSandboxModal } from './features/webhooks/WebhookSandboxModal';
+import { B2BNegotiatorModal } from './features/b2b-negotiator/B2BNegotiatorModal';
 
-import { INITIAL_MOCK_CASES, generateMockBatchCases } from './services/mockData';
-import { ComplianceEngine } from './services/complianceEngine';
-import { RevenueRecoveryAgent } from './services/recoveryAgent';
-import { BankHealthService } from './services/bankHealthService';
-import { WebhookService } from './services/webhookService';
-import type { RecoveryCase } from './types/recovery';
+import { INITIAL_MOCK_CASES, generateMockBatchCases } from './features/recovery/MockData';
+import { ComplianceEngine } from './features/recovery/ComplianceEngine';
+import { RevenueRecoveryAgent } from './features/recovery/RecoveryAgent';
+import { BankHealthService } from './features/bank-health/BankHealthService';
+import { WebhookService } from './features/webhooks/WebhookService';
+import type { RecoveryCase } from './features/recovery/types';
 
 export function App() {
   const complianceEngine = useMemo(() => new ComplianceEngine(), []);

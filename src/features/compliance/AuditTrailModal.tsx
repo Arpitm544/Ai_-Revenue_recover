@@ -1,6 +1,6 @@
 import React from 'react';
 import { ShieldCheck, X, FileText, UserCheck, Lock, Clock } from 'lucide-react';
-import type { RecoveryCase } from '../types/recovery';
+import type { RecoveryCase } from '../recovery/types';
 
 interface AuditTrailModalProps {
   isOpen: boolean;

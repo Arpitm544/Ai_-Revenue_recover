@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Building2, CheckCircle2, Send, FileText, ShieldCheck, Banknote } from 'lucide-react';
-import type { RecoveryCase } from '../types/recovery';
-import type { SplitProposal, NegotiationMessage, PromiseToPay, MilestonePayment } from '../types/b2bNegotiator';
+import type { RecoveryCase } from '../recovery/types';
+import type { SplitProposal, NegotiationMessage, PromiseToPay, MilestonePayment } from './types';
 import {
   generateSplitProposal,
   processNegotiationMessage,
   createPromiseToPay,
-} from '../services/b2bNegotiatorService';
+} from './B2BNegotiatorService';
 
 interface B2BNegotiatorModalProps {
   isOpen: boolean;

@@ -1,4 +1,4 @@
-import type { RecoveryCase } from '../types/recovery';
+import type { RecoveryCase } from './types';
 
 const IndianNames = [
   "Rohit Sharma", "Priya Nair", "Vikramaditya Verma", "Ananya Deshmukh", "Rahul Dravid",

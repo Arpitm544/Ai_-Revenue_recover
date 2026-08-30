@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Play, Pause, RefreshCw, X, Zap, Check } from 'lucide-react';
-import type { RecoveryCase } from '../types/recovery';
-import { RevenueRecoveryAgent } from '../services/recoveryAgent';
-import { ComplianceEngine } from '../services/complianceEngine';
+import type { RecoveryCase } from './types';
+import { RevenueRecoveryAgent } from './RecoveryAgent';
+import { ComplianceEngine } from './ComplianceEngine';
 import confetti from 'canvas-confetti';
 
 interface BatchSimulatorProps {

@@ -1,5 +1,6 @@
-import type { RecoveryCase, ActionChannel, AuditLogEntry, FailureCategory } from '../types/recovery';
-import { ComplianceEngine, type ComplianceCheckResult } from './complianceEngine';
+
+import type { RecoveryCase, ActionChannel, AuditLogEntry, FailureCategory } from './types';
+import { ComplianceEngine, type ComplianceCheckResult } from './ComplianceEngine';
 
 export class RevenueRecoveryAgent {
   private complianceEngine: ComplianceEngine;

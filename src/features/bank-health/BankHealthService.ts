@@ -1,5 +1,5 @@
-import type { BankHealthNode } from '../types/bankHealth';
-import type { RecoveryCase } from '../types/recovery';
+import type { BankHealthNode } from './types';
+import type { RecoveryCase } from '../recovery/types';
 
 export const INITIAL_BANK_HEALTH: BankHealthNode[] = [
   {

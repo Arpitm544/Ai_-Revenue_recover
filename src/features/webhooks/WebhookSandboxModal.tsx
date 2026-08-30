@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Zap, CheckCircle2, AlertTriangle, Shield, Radio } from 'lucide-react';
-import type { RecoveryCase } from '../types/recovery';
-import type { WebhookIngestionLog, WebhookTemplate, WebhookStep } from '../types/webhook';
-import { WebhookService } from '../services/webhookService';
+import type { RecoveryCase } from '../recovery/types';
+import type { WebhookIngestionLog, WebhookTemplate, WebhookStep } from './types';
+import { WebhookService } from './WebhookService';
 
 interface WebhookSandboxModalProps {
   isOpen: boolean;

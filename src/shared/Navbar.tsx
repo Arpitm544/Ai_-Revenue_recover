@@ -1,6 +1,6 @@
 import React from 'react';
 import { ShieldCheck, Play, Settings, PlusCircle, AlertCircle, Activity, Radio } from 'lucide-react';
-import { ComplianceEngine } from '../services/complianceEngine';
+import { ComplianceEngine } from '../features/recovery/ComplianceEngine';
 
 interface NavbarProps {
   onOpenBatchSimulator: () => void;

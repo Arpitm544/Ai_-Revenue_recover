@@ -1,4 +1,4 @@
-import type { ComplianceSettings, RecoveryCase, AuditLogEntry } from '../types/recovery';
+import type { ComplianceSettings, RecoveryCase, AuditLogEntry } from './types';
 
 export const DEFAULT_COMPLIANCE_SETTINGS: ComplianceSettings = {
   dndHoursStart: "20:00", // 8 PM IST
