@@ -189,8 +189,8 @@ export const WebhookSandboxView: React.FC<WebhookSandboxViewProps> = ({
             <textarea
               value={editedPayload}
               onChange={(e) => handlePayloadChange(e.target.value)}
-              rows={12}
-              className={`w-full p-3.5 rounded-xl font-mono text-xs focus:outline-none transition-colors border text-emerald-400 bg-[#020804] border-emerald-950/70 focus:border-emerald-800`}
+              rows={18}
+              className={`w-full min-h-[380px] p-4 rounded-xl font-mono text-[13px] leading-relaxed focus:outline-none transition-colors border text-emerald-400 bg-[#020804] border-emerald-950/70 focus:border-emerald-800 shadow-inner resize-y`}
               spellCheck={false}
             />
 
