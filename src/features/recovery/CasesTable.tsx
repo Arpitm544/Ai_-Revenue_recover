@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { 
-  Search, PhoneCall, MessageSquare, FileText, CheckCircle2, AlertTriangle, 
-  ShieldAlert, ArrowUpRight, Clock, Plus, Handshake, X, User
+  Search, CheckCircle2, AlertTriangle, 
+  ShieldAlert, ArrowUpRight, Clock, Plus, X, User
 } from 'lucide-react';
 import type { RecoveryCase, LeakVector, CaseStatus } from './types';
+import { useTheme } from '../../shared/ThemeContext';
 
 interface CasesTableProps {
   cases: RecoveryCase[];
@@ -26,6 +27,9 @@ export const CasesTable: React.FC<CasesTableProps> = ({
   onSelectNegotiateCase,
   onOpenNewCaseModal,
 }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   const [searchTerm, setSearchTerm] = useState('');
   const [vectorFilter, setVectorFilter] = useState<string>('ALL');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
@@ -50,17 +54,70 @@ export const CasesTable: React.FC<CasesTableProps> = ({
   const getStatusBadge = (status: CaseStatus) => {
     switch (status) {
       case 'RECOVERED':
-        return <span className="px-2 py-0.5 text-[11px] font-mono rounded bg-emerald-950/40 text-emerald-400 border border-emerald-800/40 flex items-center space-x-1 w-fit"><CheckCircle2 className="w-3 h-3" /><span>Recovered</span></span>;
+        return (
+          <span className={`px-2 py-0.5 text-[11px] font-mono rounded flex items-center space-x-1 w-fit ${
+            isDark 
+              ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-800/40' 
+              : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+          }`}>
+            <CheckCircle2 className="w-3 h-3" />
+            <span>Recovered</span>
+          </span>
+        );
       case 'PROMISED_TO_PAY':
-        return <span className="px-2 py-0.5 text-[11px] font-mono rounded bg-amber-950/40 text-amber-300 border border-amber-800/40 flex items-center space-x-1 w-fit"><Clock className="w-3 h-3" /><span>Promise-to-Pay</span></span>;
+        return (
+          <span className={`px-2 py-0.5 text-[11px] font-mono rounded flex items-center space-x-1 w-fit ${
+            isDark 
+              ? 'bg-amber-950/40 text-amber-300 border border-amber-800/40' 
+              : 'bg-amber-50 text-amber-800 border border-amber-200'
+          }`}>
+            <Clock className="w-3 h-3" />
+            <span>Promise-to-Pay</span>
+          </span>
+        );
       case 'INTERVENING':
-        return <span className="px-2 py-0.5 text-[11px] font-mono rounded bg-blue-950/40 text-blue-300 border border-blue-800/40 flex items-center space-x-1 w-fit"><ArrowUpRight className="w-3 h-3" /><span>Intervening</span></span>;
+        return (
+          <span className={`px-2 py-0.5 text-[11px] font-mono rounded flex items-center space-x-1 w-fit ${
+            isDark 
+              ? 'bg-blue-950/40 text-blue-300 border border-blue-800/40' 
+              : 'bg-blue-50 text-blue-700 border border-blue-200'
+          }`}>
+            <ArrowUpRight className="w-3 h-3" />
+            <span>Intervening</span>
+          </span>
+        );
       case 'STOPPED_COMPLIANT':
-        return <span className="px-2 py-0.5 text-[11px] font-mono rounded bg-zinc-900 text-zinc-400 border border-zinc-800 flex items-center space-x-1 w-fit"><ShieldAlert className="w-3 h-3 text-amber-400" /><span>Stopped</span></span>;
+        return (
+          <span className={`px-2 py-0.5 text-[11px] font-mono rounded flex items-center space-x-1 w-fit ${
+            isDark 
+              ? 'bg-zinc-900 text-zinc-400 border border-zinc-800' 
+              : 'bg-neutral-100 text-neutral-600 border border-neutral-300'
+          }`}>
+            <ShieldAlert className="w-3 h-3 text-amber-500" />
+            <span>Stopped</span>
+          </span>
+        );
       case 'FAILED_UNRECOVERABLE':
-        return <span className="px-2 py-0.5 text-[11px] font-mono rounded bg-red-950/40 text-red-400 border border-red-800/40 flex items-center space-x-1 w-fit"><AlertTriangle className="w-3 h-3" /><span>Unrecoverable</span></span>;
+        return (
+          <span className={`px-2 py-0.5 text-[11px] font-mono rounded flex items-center space-x-1 w-fit ${
+            isDark 
+              ? 'bg-red-950/40 text-red-400 border border-red-800/40' 
+              : 'bg-red-50 text-red-700 border border-red-200'
+          }`}>
+            <AlertTriangle className="w-3 h-3" />
+            <span>Unrecoverable</span>
+          </span>
+        );
       default:
-        return <span className="px-2 py-0.5 text-[11px] font-mono rounded bg-[#161616] text-[#888888] border border-[#262626] w-fit">Pending</span>;
+        return (
+          <span className={`px-2 py-0.5 text-[11px] font-mono rounded w-fit ${
+            isDark 
+              ? 'bg-[#161616] text-[#888888] border border-[#262626]' 
+              : 'bg-neutral-100 text-neutral-600 border border-neutral-200'
+          }`}>
+            Pending
+          </span>
+        );
     }
   };
 
@@ -83,36 +140,46 @@ export const CasesTable: React.FC<CasesTableProps> = ({
 
   return (
     <div className="flex flex-col h-full overflow-hidden space-y-3">
-      {/* Top Header & Search Bar with Filter Pills (like user's screenshot) */}
+      {/* Top Header & Search Bar with Filter Pills */}
       <div className="space-y-3 shrink-0">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-semibold text-white tracking-tight">Recovery Cases</h2>
-            <p className="text-xs text-[#71717A] mt-0.5">
+            <h2 className={`text-xl font-semibold tracking-tight ${isDark ? 'text-white' : 'text-neutral-900'}`}>
+              Recovery Cases
+            </h2>
+            <p className={`text-xs mt-0.5 ${isDark ? 'text-[#71717A]' : 'text-neutral-500'}`}>
               Live transaction stream, autonomous AI diagnosis & recovery tracking
             </p>
           </div>
 
           <button
             onClick={onOpenNewCaseModal}
-            className="flex items-center space-x-1.5 px-3 py-1.5 bg-white hover:bg-neutral-200 text-black text-xs font-semibold rounded-lg transition-colors shadow-sm cursor-pointer"
+            className={`flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors shadow-sm cursor-pointer ${
+              isDark 
+                ? 'bg-white hover:bg-neutral-200 text-black' 
+                : 'bg-black hover:bg-neutral-800 text-white'
+            }`}
           >
             <Plus className="w-3.5 h-3.5" />
             <span>New Case</span>
           </button>
         </div>
 
-        {/* Filter Toolbar matching user reference */}
+        {/* Filter Toolbar */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Search Input */}
           <div className="relative w-64">
-            <Search className="w-3.5 h-3.5 text-[#71717A] absolute left-2.5 top-1/2 -translate-y-1/2" />
+            <Search className={`w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 ${isDark ? 'text-[#71717A]' : 'text-neutral-400'}`} />
             <input
               type="text"
               placeholder="Search customer, bank, ID..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-[#111111] border border-[#222222] text-[#EDEDED] text-xs rounded-lg pl-8 pr-2.5 py-1.5 focus:border-[#444444] focus:outline-none placeholder-[#52525B]"
+              className={`w-full text-xs rounded-lg pl-8 pr-2.5 py-1.5 focus:outline-none transition-colors ${
+                isDark 
+                  ? 'bg-[#111111] border border-[#222222] text-[#EDEDED] focus:border-[#444444] placeholder-[#52525B]' 
+                  : 'bg-white border border-neutral-300 text-neutral-900 focus:border-neutral-500 placeholder-neutral-400'
+              }`}
             />
           </div>
 
@@ -120,7 +187,11 @@ export const CasesTable: React.FC<CasesTableProps> = ({
           <select
             value={vectorFilter}
             onChange={(e) => setVectorFilter(e.target.value)}
-            className="bg-[#111111] border border-[#222222] text-[#A1A1A1] text-xs rounded-lg px-2.5 py-1.5 focus:border-[#444444] focus:outline-none cursor-pointer"
+            className={`text-xs rounded-lg px-2.5 py-1.5 focus:outline-none cursor-pointer transition-colors ${
+              isDark 
+                ? 'bg-[#111111] border border-[#222222] text-[#A1A1A1] focus:border-[#444444]' 
+                : 'bg-white border border-neutral-300 text-neutral-700 focus:border-neutral-500'
+            }`}
           >
             <option value="ALL">All Vectors</option>
             <option value="SUBSCRIPTION_FAIL">Subscriptions</option>
@@ -133,7 +204,11 @@ export const CasesTable: React.FC<CasesTableProps> = ({
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-[#111111] border border-[#222222] text-[#A1A1A1] text-xs rounded-lg px-2.5 py-1.5 focus:border-[#444444] focus:outline-none cursor-pointer"
+            className={`text-xs rounded-lg px-2.5 py-1.5 focus:outline-none cursor-pointer transition-colors ${
+              isDark 
+                ? 'bg-[#111111] border border-[#222222] text-[#A1A1A1] focus:border-[#444444]' 
+                : 'bg-white border border-neutral-300 text-neutral-700 focus:border-neutral-500'
+            }`}
           >
             <option value="ALL">All Statuses</option>
             <option value="RECOVERED">Recovered</option>
@@ -141,20 +216,28 @@ export const CasesTable: React.FC<CasesTableProps> = ({
             <option value="STOPPED">Stopped (Compliant)</option>
           </select>
 
-          {/* Active Filter Chips (like user screenshot) */}
+          {/* Active Filter Chips */}
           {vectorFilter !== 'ALL' && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#181818] border border-[#2A2A2A] text-xs text-[#EDEDED]">
+            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs border ${
+              isDark 
+                ? 'bg-[#181818] border-[#2A2A2A] text-[#EDEDED]' 
+                : 'bg-neutral-100 border-neutral-300 text-neutral-800'
+            }`}>
               <span>Vector: {getVectorLabel(vectorFilter as LeakVector)}</span>
-              <button onClick={() => setVectorFilter('ALL')} className="text-[#71717A] hover:text-white cursor-pointer">
+              <button onClick={() => setVectorFilter('ALL')} className="text-neutral-500 hover:text-black cursor-pointer">
                 <X className="w-3 h-3" />
               </button>
             </span>
           )}
 
           {statusFilter !== 'ALL' && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#181818] border border-[#2A2A2A] text-xs text-[#EDEDED]">
+            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs border ${
+              isDark 
+                ? 'bg-[#181818] border-[#2A2A2A] text-[#EDEDED]' 
+                : 'bg-neutral-100 border-neutral-300 text-neutral-800'
+            }`}>
               <span>Status: {statusFilter}</span>
-              <button onClick={() => setStatusFilter('ALL')} className="text-[#71717A] hover:text-white cursor-pointer">
+              <button onClick={() => setStatusFilter('ALL')} className="text-neutral-500 hover:text-black cursor-pointer">
                 <X className="w-3 h-3" />
               </button>
             </span>
@@ -163,23 +246,29 @@ export const CasesTable: React.FC<CasesTableProps> = ({
           {hasActiveFilters && (
             <button
               onClick={clearFilters}
-              className="text-xs text-[#71717A] hover:text-white flex items-center gap-1 px-2 py-1 transition-colors cursor-pointer"
+              className="text-xs text-neutral-500 hover:text-black flex items-center gap-1 px-2 py-1 transition-colors cursor-pointer"
             >
               <X className="w-3 h-3" />
               <span>Clear</span>
             </button>
           )}
 
-          <div className="ml-auto text-xs text-[#71717A] font-mono">
+          <div className={`ml-auto text-xs font-mono ${isDark ? 'text-[#71717A]' : 'text-neutral-500'}`}>
             {filteredCases.length} of {cases.length} cases
           </div>
         </div>
       </div>
 
       {/* Table Data */}
-      <div className="flex-1 overflow-auto rounded-xl border border-[#1F1F1F] bg-[#0A0A0A]">
-        <table className="w-full text-left text-xs text-[#D4D4D8]">
-          <thead className="sticky top-0 z-10 bg-[#000000] text-[#71717A] font-medium uppercase text-[10px] tracking-wider border-b border-[#1F1F1F]">
+      <div className={`flex-1 overflow-auto rounded-xl border transition-colors ${
+        isDark ? 'border-[#1F1F1F] bg-[#0A0A0A]' : 'border-[#E5E7EB] bg-[#FFFFFF] shadow-sm'
+      }`}>
+        <table className={`w-full text-left text-xs ${isDark ? 'text-[#D4D4D8]' : 'text-neutral-700'}`}>
+          <thead className={`sticky top-0 z-10 font-medium uppercase text-[10px] tracking-wider border-b ${
+            isDark 
+              ? 'bg-[#000000] text-[#71717A] border-[#1F1F1F]' 
+              : 'bg-[#F9FAFB] text-neutral-500 border-[#E5E7EB]'
+          }`}>
             <tr>
               <th className="py-3 px-3.5">Customer & ID</th>
               <th className="py-3 px-3.5">Leak Vector</th>
@@ -190,10 +279,10 @@ export const CasesTable: React.FC<CasesTableProps> = ({
               <th className="py-3 px-3.5 text-right">Quick Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#181818]">
+          <tbody className={`divide-y ${isDark ? 'divide-[#181818]' : 'divide-[#F3F4F6]'}`}>
             {filteredCases.length === 0 ? (
               <tr>
-                <td colSpan={7} className="py-12 text-center text-[#71717A]">
+                <td colSpan={7} className={`py-12 text-center ${isDark ? 'text-[#71717A]' : 'text-neutral-400'}`}>
                   No recovery cases match the current filter criteria.
                 </td>
               </tr>
@@ -206,22 +295,27 @@ export const CasesTable: React.FC<CasesTableProps> = ({
                     onClick={() => onSelectCase(rcase)}
                     className={`transition-colors cursor-pointer ${
                       isSelected 
-                        ? 'bg-[#181818] border-l-2 border-white' 
-                        : 'hover:bg-[#111111]'
+                        ? isDark 
+                          ? 'bg-[#181818] border-l-2 border-white' 
+                          : 'bg-neutral-100 border-l-2 border-black'
+                        : isDark 
+                          ? 'hover:bg-[#111111]' 
+                          : 'hover:bg-[#F9FAFB]'
                     }`}
                   >
                     {/* Customer Info with Avatar */}
                     <td className="py-3 px-3.5">
                       <div className="flex items-center space-x-2.5">
-                        <div className="w-7 h-7 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-white shrink-0">
-                          <User className="w-3.5 h-3.5 text-neutral-300" />
+                        <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
+                          isDark ? 'bg-neutral-800 border border-neutral-700 text-white' : 'bg-neutral-200 border border-neutral-300 text-neutral-800'
+                        }`}>
+                          <User className="w-3.5 h-3.5" />
                         </div>
                         <div>
-                          <div className="font-medium text-[#EDEDED] flex items-center gap-1.5">
+                          <div className={`font-medium flex items-center gap-1.5 ${isDark ? 'text-[#EDEDED]' : 'text-neutral-900 font-semibold'}`}>
                             <span>{rcase.customerName}</span>
-                            {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />}
                           </div>
-                          <div className="text-[10px] text-[#71717A] font-mono mt-0.5">
+                          <div className={`text-[10px] font-mono ${isDark ? 'text-[#71717A]' : 'text-neutral-500'}`}>
                             {rcase.paymentId} · {rcase.customerPhone}
                           </div>
                         </div>
@@ -230,34 +324,38 @@ export const CasesTable: React.FC<CasesTableProps> = ({
 
                     {/* Leak Vector */}
                     <td className="py-3 px-3.5">
-                      <span className="px-2 py-0.5 rounded bg-[#141414] text-[#A1A1A1] text-[11px] font-mono border border-[#222222]">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
+                        isDark 
+                          ? 'bg-[#141414] text-[#A1A1A1] border-[#222222]' 
+                          : 'bg-neutral-100 text-neutral-700 border-neutral-200'
+                      }`}>
                         {getVectorLabel(rcase.leakVector)}
                       </span>
                     </td>
 
-                    {/* Amount at Risk */}
-                    <td className="py-3 px-3.5">
-                      <div className="font-medium text-[#EDEDED]">
+                    {/* Amount */}
+                    <td className="py-3 px-3.5 font-mono">
+                      <div className={`font-semibold ${isDark ? 'text-white' : 'text-neutral-900'}`}>
                         ₹{rcase.amountAtRisk.toLocaleString('en-IN')}
                       </div>
                       {rcase.totalAmountRecovered > 0 && (
-                        <div className="text-[10px] text-emerald-400 font-mono">
-                          +₹{rcase.totalAmountRecovered.toLocaleString('en-IN')} recovered
+                        <div className="text-[10px] text-emerald-500 font-medium">
+                          +₹{rcase.totalAmountRecovered.toLocaleString('en-IN')} saved
                         </div>
                       )}
                     </td>
 
-                    {/* Bank & Failure Cause */}
+                    {/* Bank & Failure */}
                     <td className="py-3 px-3.5">
-                      <div className="text-[#D4D4D8] font-medium">{rcase.issuingBank}</div>
-                      <div className="text-[10px] text-[#71717A] truncate max-w-[150px]" title={rcase.failureReason}>
+                      <div className={`font-medium ${isDark ? 'text-[#EDEDED]' : 'text-neutral-800'}`}>{rcase.issuingBank}</div>
+                      <div className={`text-[10px] font-mono truncate max-w-[140px] ${isDark ? 'text-[#71717A]' : 'text-neutral-500'}`} title={rcase.failureReason}>
                         {rcase.failureReason}
                       </div>
                     </td>
 
                     {/* Recommended Channel */}
                     <td className="py-3 px-3.5">
-                      <span className="text-[10px] font-mono text-[#A1A1A1] bg-[#141414] px-2 py-0.5 rounded border border-[#222222]">
+                      <span className={`text-[11px] font-mono ${isDark ? 'text-[#A1A1A1]' : 'text-neutral-600'}`}>
                         {rcase.recommendedChannel.replace(/_/g, ' ')}
                       </span>
                     </td>
@@ -267,41 +365,52 @@ export const CasesTable: React.FC<CasesTableProps> = ({
                       {getStatusBadge(rcase.status)}
                     </td>
 
-                    {/* Quick Action Buttons */}
-                    <td className="py-3 px-3.5 text-right" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center justify-end space-x-1">
-                        {rcase.leakVector === 'B2B_INVOICE' && rcase.amountAtRisk >= 45000 && (
-                          <button
-                            onClick={() => onSelectNegotiateCase(rcase)}
-                            className="p-1.5 bg-[#141414] hover:bg-[#222222] text-purple-400 hover:text-purple-300 rounded border border-[#262626] hover:border-[#3A3A3A] transition-all cursor-pointer"
-                            title="Open B2B Milestone Settlement Negotiator"
-                          >
-                            <Handshake className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-
+                    {/* Quick Action Shortcuts */}
+                    <td className="py-3 px-3.5 text-right">
+                      <div className="flex items-center justify-end space-x-1" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => onSelectVoiceCase(rcase)}
-                          className="p-1.5 bg-[#141414] hover:bg-[#222222] text-[#A1A1A1] hover:text-white rounded border border-[#262626] hover:border-[#3A3A3A] transition-all cursor-pointer"
-                          title="Launch Hinglish Voice Agent Call Simulator"
+                          className={`p-1.5 rounded-md border transition-colors cursor-pointer ${
+                            isDark 
+                              ? 'bg-[#111111] hover:bg-[#1E1E1E] text-[#A1A1A1] hover:text-white border-[#222222]' 
+                              : 'bg-white hover:bg-neutral-100 text-neutral-600 hover:text-black border-neutral-300 shadow-sm'
+                          }`}
+                          title="Hinglish Voice AI Simulation"
                         >
-                          <PhoneCall className="w-3.5 h-3.5" />
+                          🎤
                         </button>
-
                         <button
                           onClick={() => onSelectWhatsAppCase(rcase)}
-                          className="p-1.5 bg-[#141414] hover:bg-[#222222] text-emerald-400 hover:text-emerald-300 rounded border border-[#262626] hover:border-[#3A3A3A] transition-all cursor-pointer"
-                          title="Preview WhatsApp 1-Tap UPI Payment Nudge"
+                          className={`p-1.5 rounded-md border transition-colors cursor-pointer ${
+                            isDark 
+                              ? 'bg-[#111111] hover:bg-[#1E1E1E] text-[#A1A1A1] hover:text-white border-[#222222]' 
+                              : 'bg-white hover:bg-neutral-100 text-neutral-600 hover:text-black border-neutral-300 shadow-sm'
+                          }`}
+                          title="1-Tap UPI WhatsApp Preview"
                         >
-                          <MessageSquare className="w-3.5 h-3.5" />
+                          💬
                         </button>
-
+                        <button
+                          onClick={() => onSelectNegotiateCase(rcase)}
+                          className={`p-1.5 rounded-md border transition-colors cursor-pointer ${
+                            isDark 
+                              ? 'bg-[#111111] hover:bg-[#1E1E1E] text-[#A1A1A1] hover:text-white border-[#222222]' 
+                              : 'bg-white hover:bg-neutral-100 text-neutral-600 hover:text-black border-neutral-300 shadow-sm'
+                          }`}
+                          title="B2B Settlement Negotiator"
+                        >
+                          🤝
+                        </button>
                         <button
                           onClick={() => onSelectAuditCase(rcase)}
-                          className="p-1.5 bg-[#141414] hover:bg-[#222222] text-[#71717A] hover:text-white rounded border border-[#262626] hover:border-[#3A3A3A] transition-all cursor-pointer"
-                          title="View Immutable Audit Trail"
+                          className={`p-1.5 rounded-md border transition-colors cursor-pointer ${
+                            isDark 
+                              ? 'bg-[#111111] hover:bg-[#1E1E1E] text-[#A1A1A1] hover:text-white border-[#222222]' 
+                              : 'bg-white hover:bg-neutral-100 text-neutral-600 hover:text-black border-neutral-300 shadow-sm'
+                          }`}
+                          title="Immutable Audit Trail"
                         >
-                          <FileText className="w-3.5 h-3.5" />
+                          📋
                         </button>
                       </div>
                     </td>

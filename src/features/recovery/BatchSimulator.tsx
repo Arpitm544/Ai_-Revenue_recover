@@ -4,6 +4,7 @@ import type { RecoveryCase } from './types';
 import { RevenueRecoveryAgent } from './RecoveryAgent';
 import { ComplianceEngine } from './ComplianceEngine';
 import confetti from 'canvas-confetti';
+import { AnimatedCounter } from '../../shared/AnimatedCounter';
 
 interface BatchSimulatorProps {
   isOpen: boolean;
@@ -158,13 +159,19 @@ export const BatchSimulator: React.FC<BatchSimulatorProps> = ({
 
             <div className="p-3.5 rounded-xl bg-[#0D0D0D] border border-[#1F1F1F]">
               <span className="text-[10px] uppercase font-mono text-emerald-400 block">Money Recovered</span>
-              <span className="text-xl font-bold font-mono text-emerald-400 mt-1 block">₹{totalRecovered.toLocaleString('en-IN')}</span>
-              <span className="text-[10px] text-[#71717A] block">{recoveredCount} Payments Won Back</span>
+              <span className="text-xl font-bold font-mono text-emerald-400 mt-1 block">
+                <AnimatedCounter value={totalRecovered} prefix="₹" />
+              </span>
+              <span className="text-[10px] text-[#71717A] block">
+                <AnimatedCounter value={recoveredCount} /> Payments Won Back
+              </span>
             </div>
 
             <div className="p-3.5 rounded-xl bg-[#0D0D0D] border border-[#1F1F1F]">
               <span className="text-[10px] uppercase font-mono text-amber-400 block">Compliant Stops</span>
-              <span className="text-xl font-bold font-mono text-amber-400 mt-1 block">{stoppedCount}</span>
+              <span className="text-xl font-bold font-mono text-amber-400 mt-1 block">
+                <AnimatedCounter value={stoppedCount} />
+              </span>
               <span className="text-[10px] text-[#71717A] block">DND / Hard Declines Protected</span>
             </div>
 

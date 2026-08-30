@@ -19,14 +19,18 @@ import { RevenueRecoveryAgent } from './features/recovery/RecoveryAgent';
 import { BankHealthService } from './features/bank-health/BankHealthService';
 import { WebhookService } from './features/webhooks/WebhookService';
 import type { RecoveryCase } from './features/recovery/types';
-import { ChevronRight, Play, Activity, Download } from 'lucide-react';
+import { ChevronRight, Play, Download, Sun, Moon } from 'lucide-react';
+import { ThemeProvider, useTheme } from './shared/ThemeContext';
 
 const complianceEngine = new ComplianceEngine();
 const recoveryAgent = new RevenueRecoveryAgent(complianceEngine);
 const bankHealthService = new BankHealthService();
 const webhookService = new WebhookService();
 
-export default function App() {
+function RevGuardApp() {
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme === 'dark';
+
   const [cases, setCases] = useState<RecoveryCase[]>(INITIAL_MOCK_CASES);
   const [activeView, setActiveView] = useState<'cases' | 'analytics'>('cases');
   const [selectedDrawerCase, setSelectedDrawerCase] = useState<RecoveryCase | null>(null);
@@ -112,7 +116,9 @@ export default function App() {
   };
 
   return (
-    <div className="h-screen w-screen bg-black text-[#EDEDED] font-sans flex overflow-hidden select-none">
+    <div className={`h-screen w-screen font-sans flex overflow-hidden select-none transition-colors duration-150 ${
+      isDark ? 'bg-black text-[#EDEDED]' : 'bg-[#F9FAFB] text-[#111827]'
+    }`}>
       {/* Column 1: Left Navigation Sidebar */}
       <Sidebar
         activeView={activeView}
@@ -130,11 +136,13 @@ export default function App() {
       {/* Column 2: Center Main Workspace */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         {/* Top Breadcrumb Bar */}
-        <header className="h-12 border-b border-[#1F1F1F] bg-[#000000] px-6 flex items-center justify-between shrink-0 text-xs">
-          <div className="flex items-center space-x-2 text-[#71717A]">
+        <header className={`h-12 border-b px-6 flex items-center justify-between shrink-0 text-xs transition-colors ${
+          isDark ? 'border-[#1F1F1F] bg-[#000000]' : 'border-[#E5E7EB] bg-[#FFFFFF]'
+        }`}>
+          <div className={`flex items-center space-x-2 ${isDark ? 'text-[#71717A]' : 'text-neutral-500'}`}>
             <span>Razorpay RevGuard</span>
             <ChevronRight className="w-3.5 h-3.5" />
-            <span className="text-white font-medium capitalize">
+            <span className={`font-medium capitalize ${isDark ? 'text-white' : 'text-neutral-900 font-semibold'}`}>
               {activeView === 'cases' ? 'All Recovery Cases' : 'Executive Overview'}
             </span>
           </div>
@@ -142,37 +150,71 @@ export default function App() {
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setIsBankHealthOpen(true)}
-              className={`flex items-center space-x-1 px-2.5 py-1 rounded-md text-[11px] font-mono border transition-colors cursor-pointer ${
+              className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono border transition-all duration-150 hover:scale-[1.02] active:scale-[0.97] cursor-pointer ${
                 degradedBankCount > 0
-                  ? 'bg-amber-950/40 border-amber-800/40 text-amber-300'
-                  : 'bg-[#111111] border-[#222222] text-[#A1A1A1] hover:text-white'
+                  ? isDark 
+                    ? 'bg-amber-950/40 border-amber-800/40 text-amber-300' 
+                    : 'bg-amber-50 border-amber-300 text-amber-800'
+                  : isDark 
+                    ? 'bg-[#111111] border-[#222222] text-[#A1A1A1] hover:text-white' 
+                    : 'bg-neutral-100 border-neutral-200 text-neutral-700 hover:text-black'
               }`}
             >
-              <Activity className="w-3 h-3 text-emerald-400" />
+              <span className="relative flex h-2 w-2 shrink-0">
+                {degradedBankCount > 0 ? (
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                ) : (
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                )}
+                <span className={`relative inline-flex rounded-full h-2 w-2 ${degradedBankCount > 0 ? 'bg-amber-400' : 'bg-emerald-500'}`} />
+              </span>
               <span>Gateways: {degradedBankCount > 0 ? `${degradedBankCount} Alert` : 'Healthy'}</span>
             </button>
 
             <button
               onClick={handleExportReport}
-              className="flex items-center space-x-1.5 px-2.5 py-1 bg-[#111111] hover:bg-[#1A1A1A] text-[#D4D4D8] hover:text-white font-mono text-[11px] rounded-md border border-[#222222] transition-colors cursor-pointer"
+              className={`flex items-center space-x-1.5 px-2.5 py-1 font-mono text-[11px] rounded-md border transition-all duration-150 hover:scale-[1.02] active:scale-[0.97] cursor-pointer ${
+                isDark 
+                  ? 'bg-[#111111] hover:bg-[#1A1A1A] text-[#D4D4D8] hover:text-white border-[#222222]' 
+                  : 'bg-white hover:bg-neutral-100 text-neutral-700 hover:text-black border-neutral-300 shadow-sm'
+              }`}
               title="Download Compliance & Recovery JSON Report"
             >
               <Download className="w-3 h-3" />
               <span>Export Audit</span>
             </button>
 
+            {/* Theme Toggle Button in Header */}
+            <button
+              onClick={toggleTheme}
+              className={`p-1.5 rounded-md border transition-all duration-150 hover:scale-[1.05] active:scale-[0.95] cursor-pointer ${
+                isDark 
+                  ? 'bg-[#111111] hover:bg-[#1A1A1A] border-[#222222] text-[#D4D4D8] hover:text-white' 
+                  : 'bg-white hover:bg-neutral-100 border-neutral-300 text-neutral-700 hover:text-black shadow-sm'
+              }`}
+              title={`Switch to ${isDark ? 'Light' : 'Dark'} Mode`}
+            >
+              {isDark ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-indigo-600" />}
+            </button>
+
             <button
               onClick={() => setIsBatchOpen(true)}
-              className="flex items-center space-x-1.5 px-3 py-1 bg-white hover:bg-neutral-200 text-black font-semibold text-xs rounded-md transition-colors shadow-sm cursor-pointer"
+              className={`flex items-center space-x-1.5 px-3 py-1 font-semibold text-xs rounded-md transition-all duration-150 hover:scale-[1.02] active:scale-[0.97] shadow-sm cursor-pointer ${
+                isDark 
+                  ? 'bg-white hover:bg-neutral-200 text-black' 
+                  : 'bg-black hover:bg-neutral-800 text-white'
+              }`}
             >
-              <Play className="w-3 h-3 fill-black" />
+              <Play className="w-3 h-3 fill-current" />
               <span>Run Batch</span>
             </button>
           </div>
         </header>
 
         {/* Main Content Area */}
-        <main className="flex-1 overflow-auto p-6">
+        <main className={`flex-1 overflow-auto p-6 transition-colors ${
+          isDark ? 'bg-black' : 'bg-[#F9FAFB]'
+        }`}>
           {activeView === 'cases' ? (
             <CasesTable
               cases={cases}
@@ -187,8 +229,10 @@ export default function App() {
           ) : (
             <div className="space-y-6">
               <div>
-                <h2 className="text-xl font-semibold text-white tracking-tight">Executive Analytics</h2>
-                <p className="text-xs text-[#71717A] mt-0.5">
+                <h2 className={`text-xl font-semibold tracking-tight ${isDark ? 'text-white' : 'text-neutral-900'}`}>
+                  Executive Analytics
+                </h2>
+                <p className={`text-xs mt-0.5 ${isDark ? 'text-[#71717A]' : 'text-neutral-500'}`}>
                   Aggregated revenue loss metrics, recovery rate %, and lifecycle distribution
                 </p>
               </div>
@@ -280,5 +324,13 @@ export default function App() {
         onUpdateCase={handleUpdateCase}
       />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <RevGuardApp />
+    </ThemeProvider>
   );
 }
